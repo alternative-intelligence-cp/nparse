@@ -1,0 +1,16 @@
+mod nparse.plugins.hooks;
+
+use nparse.core.red_node.RedNode;
+
+extern "nitpick_nparse_sys" {
+    /// Registers a callback function to be executed whenever the traversal
+    /// engine enters a RedNode of the specified `ast_node_kind`.
+    func:npk_hook_register_enter = void(int64:grammar, int32:ast_node_kind, int64:callback_ptr);
+    
+    /// Registers a callback function to be executed whenever the traversal
+    /// engine exits a RedNode of the specified `ast_node_kind`.
+    func:npk_hook_register_exit = void(int64:grammar, int32:ast_node_kind, int64:callback_ptr);
+    
+    /// Type signature for the hook callback functions.
+    /// func(wild RedNode->:node) -> void
+}

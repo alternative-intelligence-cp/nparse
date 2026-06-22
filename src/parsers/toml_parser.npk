@@ -1,0 +1,20 @@
+mod nparse.parsers.toml_parser;
+
+use nparse.api.builder.*;
+use nparse.api.combinators.*;
+
+extern "nitpick_nparse_sys" {
+    /// Bootstraps and returns a Grammar handle for parsing TOML documents.
+    /// This uses the standard NPARSE combinator API internally.
+    func:npk_parser_toml_create = int64() {
+        int64:g = npk_grammar_create();
+        
+        // In a real implementation, we would define the Lexer tokens first
+        // and then map them to rules here using npk_rule_seq, npk_rule_choice, etc.
+        // e.g.
+        // int32:rule_table_header = npk_rule_seq(g, [T_LBRACKET, rule_key, T_RBRACKET], 3);
+        // npk_grammar_bind(g, rule_table_header, AST_TOML_TABLE_HEADER);
+        
+        return g;
+    };
+}
