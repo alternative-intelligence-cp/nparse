@@ -1,0 +1,34 @@
+mod nparse.lexer.dfa_lexer;
+
+use nparse.core.token.Token;
+
+/// A zero-allocation view into the source buffer.
+pub struct:StrView = {
+    wild int8->:data;
+    int64:length;
+};
+
+/// The internal state of the streaming DFA lexer.
+/// No token buffers or string allocations are maintained here.
+pub struct:Lexer = {
+    StrView:source;
+    int64:cursor;       // Current absolute byte offset
+};
+
+extern "nitpick_nparse_sys" {
+    /// Initializes the lexer state with the given source view.
+    func:npk_lexer_init = Lexer(StrView:source);
+    
+    /// Executes the DFA state machine using a single-instruction 
+    /// lookup table for ASCII character ranges.
+    func:npk_lexer_transition = int32(int32:current_state, int8:byte);
+    
+    /// Scans forward to consume whitespace and block/inline comments.
+    /// Returns the length of the consumed trivia in bytes.
+    func:npk_lexer_consume_trivia = int32(wild Lexer->:lexer);
+    
+    /// Main entrypoint for the parser. Streams the next token on-demand.
+    /// Safely packages the primary semantic token along with its leading
+    /// and trailing trivia into a single zero-copy Token structure.
+    func:npk_lexer_next_token = Token(wild Lexer->:lexer);
+}
