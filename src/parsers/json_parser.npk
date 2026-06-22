@@ -22,38 +22,38 @@ const int32:AST_JSON_ARRAY  = 101i32;
 const int32:AST_JSON_MEMBER = 102i32;
 
     /// Bootstraps and returns a Grammar handle for parsing JSON documents.
-    func:npk_parser_json_create = int64() {
-        int64:g = npk_grammar_create();
+    pub func:npk_parser_json_create = int64() {
+        int64:g = _!npk_grammar_create();
         
         // Define base literal tokens
-        int32:r_str   = npk_rule_token(g, T_STRING);
-        int32:r_num   = npk_rule_token(g, T_NUMBER);
-        int32:r_true  = npk_rule_token(g, T_TRUE);
-        int32:r_false = npk_rule_token(g, T_FALSE);
-        int32:r_null  = npk_rule_token(g, T_NULL);
+        int32:r_str   = _!npk_rule_token(g, T_STRING);
+        int32:r_num   = _!npk_rule_token(g, T_NUMBER);
+        int32:r_true  = _!npk_rule_token(g, T_TRUE);
+        int32:r_false = _!npk_rule_token(g, T_FALSE);
+        int32:r_null  = _!npk_rule_token(g, T_NULL);
         
         // Forward declare value for recursion (assuming id 999 for Value)
         int32:r_value = 999i32; 
         
         // Member: STRING ":" Value
-        int64:member_seq[3] = [r_str, npk_rule_token(g, T_COLON), r_value];
-        int32:r_member = npk_rule_seq(g, member_seq, 3);
-        npk_grammar_bind(g, r_member, AST_JSON_MEMBER);
+        int64[3]:member_seq = [r_str => int64, (_!npk_rule_token(g, T_COLON)) => int64, r_value => int64];
+        int32:r_member = _!npk_rule_seq(g, member_seq => int64, 3);
+        _!npk_grammar_bind(g, r_member, AST_JSON_MEMBER);
         
         // Object: "{" [Member ("," Member)*] "}"
         // Note: simplified here to avoid pointer math in pure Nitpick
-        int64:obj_seq[3] = [npk_rule_token(g, T_LBRACE), npk_rule_repeat(g, r_member, 0), npk_rule_token(g, T_RBRACE)];
-        int32:r_object = npk_rule_seq(g, obj_seq, 3);
-        npk_grammar_bind(g, r_object, AST_JSON_OBJECT);
+        int64[3]:obj_seq = [(_!npk_rule_token(g, T_LBRACE)) => int64, (_!npk_rule_repeat(g, r_member, 0)) => int64, (_!npk_rule_token(g, T_RBRACE)) => int64];
+        int32:r_object = _!npk_rule_seq(g, obj_seq => int64, 3);
+        _!npk_grammar_bind(g, r_object, AST_JSON_OBJECT);
         
         // Array: "[" [Value ("," Value)*] "]"
-        int64:arr_seq[3] = [npk_rule_token(g, T_LBRACKET), npk_rule_repeat(g, r_value, 0), npk_rule_token(g, T_RBRACKET)];
-        int32:r_array = npk_rule_seq(g, arr_seq, 3);
-        npk_grammar_bind(g, r_array, AST_JSON_ARRAY);
+        int64[3]:arr_seq = [(_!npk_rule_token(g, T_LBRACKET)) => int64, (_!npk_rule_repeat(g, r_value, 0)) => int64, (_!npk_rule_token(g, T_RBRACKET)) => int64];
+        int32:r_array = _!npk_rule_seq(g, arr_seq => int64, 3);
+        _!npk_grammar_bind(g, r_array, AST_JSON_ARRAY);
         
         // Value: Object | Array | String | Number | true | false | null
-        int64:val_choice[7] = [r_object, r_array, r_str, r_num, r_true, r_false, r_null];
-        r_value = npk_rule_choice(g, val_choice, 7); // Bind to 999 internally via backend
+        int64[7]:val_choice = [r_object => int64, r_array => int64, r_str => int64, r_num => int64, r_true => int64, r_false => int64, r_null => int64];
+        r_value = _!npk_rule_choice(g, val_choice => int64, 7); // Bind to 999 internally via backend
         
-        return g;
+        pass(g);
     };

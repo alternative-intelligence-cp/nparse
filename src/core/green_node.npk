@@ -1,6 +1,6 @@
 mod nparse.core.green_node;
 
-use nparse.memory.handle.Handle;
+use nparse.memory.handle.CompactHandle;
 
 /// The immutable, structural, bottom-up tree node.
 /// Packed to exactly 32 bytes for optimal CPU cache utilization.
@@ -15,6 +15,6 @@ pub struct:GreenNode = {
     // Small Vector Optimization (SVO)
     // For child_count <= 2, these hold the children handles directly.
     // For child_count > 2, child0 is used as a handle to an array of children.
-    Handle<GreenNode>:child0; // 8 bytes
-    Handle<GreenNode>:child1; // 8 bytes
+    CompactHandle<GreenNode>:child0; // 8 bytes
+    CompactHandle<GreenNode>:child1; // 8 bytes
 };

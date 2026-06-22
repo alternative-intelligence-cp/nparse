@@ -2,11 +2,11 @@ mod nparse.api.builder;
 
     /// Initializes a new grammar definition structure.
     /// Returns a 64-bit handle to the grammar instance.
-    func:npk_grammar_create = int64(); 
+    pub func:npk_grammar_create = int64() { pass(0i64); }; 
     
     /// Destroys the grammar definition and frees all internal rule structures.
-    func:npk_grammar_destroy = void(int64:grammar_ptr);
+    pub func:npk_grammar_destroy = NIL(int64:grammar_ptr) { pass(NIL); };
     
     /// Binds a finalized rule ID to an AST Node Kind (GreenNode.kind).
     /// When this rule successfully matches, the resulting tree node will be tagged with ast_node_kind.
-    func:npk_grammar_bind = void(int64:g, int32:rule_id, int32:ast_node_kind);
+    pub func:npk_grammar_bind = NIL(int64:g, int32:rule_id, int32:ast_node_kind) { pass(NIL); };

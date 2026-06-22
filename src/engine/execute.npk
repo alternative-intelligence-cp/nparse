@@ -1,16 +1,8 @@
 mod nparse.engine.execute;
 
 use nparse.core.green_node.GreenNode;
-use nparse.memory.handle.Handle;
+use nparse.memory.handle.CompactHandle;
 use nparse.lexer.dfa_lexer.StrView;
-
-/// Safely encapsulates the result of a parse attempt.
-/// Uses soft errors instead of panics to adhere to the Priority 1 Safety Mandate.
-/// No `failsafe()` or emphatic unwraps are allowed on this type within the core engine.
-pub enum:ParseResult = {
-    Success(Handle<GreenNode>:node),
-    SoftError(int32:error_code) 
-};
 
 // Security Mandate Error Codes
 const int32:ERR_PARSE_DEPTH_EXCEEDED = -1i32;
@@ -18,20 +10,21 @@ const int32:ERR_ZERO_WIDTH_LOOP      = -2i32;
 
     /// Core execution entrypoint. Matches the grammar against the source.
     /// Strictly limits recursion via max_recursion_depth to prevent call-stack exhaustion attacks.
-    pub func:npk_parse = ParseResult(int64:grammar, StrView:source, uint32:max_recursion_depth) {
+    pub func:npk_parse = Result<CompactHandle<GreenNode>>(int64:grammar, StrView:source, uint32:max_recursion_depth) {
         // Native Nitpick parser loop implementation stub
         // Recursively evaluates rules up to max_recursion_depth
-        return ParseResult { tag = 0i32 }; // Return Success
+        pass(CompactHandle<GreenNode>{ index = 0u32, generation = 0u32 }); // Return Success
     };
     
     /// Packrat Memoization Cache: Fast path lookup using ahash.
-    pub func:npk_memoize_get = ParseResult(int64:cache_ptr, int32:rule_id, int64:byte_offset) {
+    pub func:npk_memoize_get = Result<CompactHandle<GreenNode>>(int64:cache_ptr, int32:rule_id, int64:byte_offset) {
         // Native Packrat lookup stub
-        return ParseResult { tag = 2i32 }; // 2 = Unknown/Miss
+        fail(-3i32); // 2 = Unknown/Miss
     };
     
-    pub func:npk_memoize_set = void(int64:cache_ptr, int32:rule_id, int64:byte_offset, ParseResult:res) {
+    pub func:npk_memoize_set = NIL(int64:cache_ptr, int32:rule_id, int64:byte_offset, Result<CompactHandle<GreenNode>>:res) {
         // Native Packrat write stub
+        pass(NIL);
     };
     
     /// Zero-Width Loop Defense: Assert progress within `repeat` combinators.

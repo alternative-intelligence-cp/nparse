@@ -4,11 +4,11 @@ use nparse.core.red_node.RedNode;
 
     /// Registers a callback function to be executed whenever the traversal
     /// engine enters a RedNode of the specified `ast_node_kind`.
-    func:npk_hook_register_enter = void(int64:grammar, int32:ast_node_kind, int64:callback_ptr);
+    pub func:npk_hook_register_enter = NIL(int64:grammar, int32:ast_node_kind, int64:callback_ptr) { pass(NIL); };
     
     /// Registers a callback function to be executed whenever the traversal
     /// engine exits a RedNode of the specified `ast_node_kind`.
-    func:npk_hook_register_exit = void(int64:grammar, int32:ast_node_kind, int64:callback_ptr);
+    pub func:npk_hook_register_exit = NIL(int64:grammar, int32:ast_node_kind, int64:callback_ptr) { pass(NIL); };
     
     /// Type signature for the hook callback functions.
-    /// func(wild RedNode->:node) -> void
+    /// func(wild RedNode->:node) -> NIL

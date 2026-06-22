@@ -13,12 +13,12 @@ pub struct:ScopedSemanticPass = {
 impl ScopedSemanticPass {
     /// Initializes a new semantic pass boundary.
     pub func:begin = ScopedSemanticPass() {
-        return ScopedSemanticPass { active = 1i8 };
+        pass(ScopedSemanticPass { active: 1i8 });
     };
     
     /// Destructor (called automatically when the struct goes out of scope).
     /// Enforces the Priority 1 Safety mandate by preventing TLC memory leaks.
-    pub func:destroy = void(ScopedSemanticPass:self) {
+    pub func:destroy = NIL(ScopedSemanticPass:self) {
         if self.active == 1i8 {
             npk_tlc_flush();
         }

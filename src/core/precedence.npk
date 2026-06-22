@@ -10,13 +10,13 @@ pub struct:PrecedenceTable = {
 };
 
     /// Initializes a flat precedence table capable of holding up to max_token_id.
-    func:npk_precedence_table_create = wild PrecedenceTable->(int32:max_token_id);
+    pub func:npk_precedence_table_create = wild PrecedenceTable->(int32:max_token_id) { pass(NULL); };
     
     /// Sets the precedence power for a specific token ID.
-    func:npk_precedence_table_set = void(wild PrecedenceTable->:table, int32:token_id, int32:power, int8:is_right_assoc);
+    pub func:npk_precedence_table_set = NIL(wild PrecedenceTable->:table, int32:token_id, int32:power, int8:is_right_assoc) { pass(NIL); };
     
     /// Fast O(1) lookup: returns the binding power for a token ID.
-    func:npk_precedence_table_get_power = int32(wild PrecedenceTable->:table, int32:token_id);
+    pub func:npk_precedence_table_get_power = int32(wild PrecedenceTable->:table, int32:token_id) { pass(0i32); };
     
     /// Fast O(1) lookup: returns 1 if right-associative, 0 otherwise.
-    func:npk_precedence_table_get_assoc = int8(wild PrecedenceTable->:table, int32:token_id);
+    pub func:npk_precedence_table_get_assoc = int8(wild PrecedenceTable->:table, int32:token_id) { pass(0i8); };

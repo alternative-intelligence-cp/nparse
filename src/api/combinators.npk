@@ -1,19 +1,20 @@
 mod nparse.api.combinators;
 
     /// Maps a specific lexical token type directly to a fundamental parsing rule ID.
-    func:npk_rule_token    = int32(int64:g, int32:token_kind);
+    /// Maps a specific lexical token type directly to a fundamental parsing rule ID.
+    pub func:npk_rule_token    = int32(int64:g, int32:token_kind) { pass(0i32); };
     
     /// Synthesizes a sequential rule (A then B then C) from a tightly packed array of child rule IDs.
-    func:npk_rule_seq      = int32(int64:g, int64:rule_ids_ptr, int32:count);
+    pub func:npk_rule_seq      = int32(int64:g, int64:rule_ids_ptr, int32:count) { pass(0i32); };
     
     /// Synthesizes an alternation (A OR B) rule from an array of child rule IDs.
-    func:npk_rule_choice   = int32(int64:g, int64:rule_ids_ptr, int32:count);
+    pub func:npk_rule_choice   = int32(int64:g, int64:rule_ids_ptr, int32:count) { pass(0i32); };
     
     /// Matches one or more sequential occurrences of a designated child rule.
-    func:npk_rule_repeat   = int32(int64:g, int32:rule_id, int32:min_matches);
+    pub func:npk_rule_repeat   = int32(int64:g, int32:rule_id, int32:min_matches) { pass(0i32); };
     
     /// Matches zero or exactly one occurrence of a designated child rule.
-    func:npk_rule_optional = int32(int64:g, int32:rule_id);
+    pub func:npk_rule_optional = int32(int64:g, int32:rule_id) { pass(0i32); };
     
     // ==========================================
     // Top-Down Operator Precedence (Pratt Parser)
@@ -21,10 +22,10 @@ mod nparse.api.combinators;
     
     /// Defines an infix operator rule with a specific binding power (precedence).
     /// is_right_assoc should be 1 for right-associative (e.g. exponentiation) and 0 for left-associative.
-    func:npk_rule_infix  = int32(int64:g, int32:token_kind, int32:precedence, int8:is_right_assoc);
+    pub func:npk_rule_infix  = int32(int64:g, int32:token_kind, int32:precedence, int8:is_right_assoc) { pass(0i32); };
     
     /// Defines a prefix operator rule with a specific binding power.
-    func:npk_rule_prefix = int32(int64:g, int32:token_kind, int32:precedence);
+    pub func:npk_rule_prefix = int32(int64:g, int32:token_kind, int32:precedence) { pass(0i32); };
     
     /// Synthesizes a unified Pratt Expression parser rule using arrays of defined prefix and infix rules.
-    func:npk_rule_pratt_expr = int32(int64:g, int64:prefix_rules_ptr, int32:pref_count, int64:infix_rules_ptr, int32:inf_count);
+    pub func:npk_rule_pratt_expr = int32(int64:g, int64:prefix_rules_ptr, int32:pref_count, int64:infix_rules_ptr, int32:inf_count) { pass(0i32); };

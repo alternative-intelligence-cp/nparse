@@ -19,33 +19,33 @@ const int32:AST_TOML_KEY_VALUE    = 201i32;
 const int32:AST_TOML_DOCUMENT     = 202i32;
 
     /// Bootstraps and returns a Grammar handle for parsing TOML documents.
-    func:npk_parser_toml_create = int64() {
-        int64:g = npk_grammar_create();
+    pub func:npk_parser_toml_create = int64() {
+        int64:g = _!npk_grammar_create();
         
-        int32:r_ident = npk_rule_token(g, T_IDENT);
-        int32:r_value = npk_rule_token(g, T_VALUE);
-        int32:r_nl    = npk_rule_token(g, T_NEWLINE);
+        int32:r_ident = _!npk_rule_token(g, T_IDENT);
+        int32:r_value = _!npk_rule_token(g, T_VALUE);
+        int32:r_nl    = _!npk_rule_token(g, T_NEWLINE);
         
         // KeyValue: Ident "=" Value
-        int64:kv_seq[3] = [r_ident, npk_rule_token(g, T_EQUALS), r_value];
-        int32:r_keyval = npk_rule_seq(g, kv_seq, 3);
-        npk_grammar_bind(g, r_keyval, AST_TOML_KEY_VALUE);
+        int64[3]:kv_seq = [r_ident => int64, (_!npk_rule_token(g, T_EQUALS)) => int64, r_value => int64];
+        int32:r_keyval = _!npk_rule_seq(g, kv_seq => int64, 3);
+        _!npk_grammar_bind(g, r_keyval, AST_TOML_KEY_VALUE);
         
         // TableHeader: "[" Ident "]"
-        int64:th_seq[3] = [npk_rule_token(g, T_LBRACKET), r_ident, npk_rule_token(g, T_RBRACKET)];
-        int32:r_table = npk_rule_seq(g, th_seq, 3);
-        npk_grammar_bind(g, r_table, AST_TOML_TABLE_HEADER);
+        int64[3]:th_seq = [(_!npk_rule_token(g, T_LBRACKET)) => int64, r_ident => int64, (_!npk_rule_token(g, T_RBRACKET)) => int64];
+        int32:r_table = _!npk_rule_seq(g, th_seq => int64, 3);
+        _!npk_grammar_bind(g, r_table, AST_TOML_TABLE_HEADER);
         
         // Entry: (KeyValue | TableHeader) Newline
-        int64:entry_choice[2] = [r_keyval, r_table];
-        int32:r_entry = npk_rule_choice(g, entry_choice, 2);
+        int64[2]:entry_choice = [r_keyval => int64, r_table => int64];
+        int32:r_entry = _!npk_rule_choice(g, entry_choice => int64, 2);
         
-        int64:doc_seq[2] = [r_entry, r_nl];
-        int32:r_doc_entry = npk_rule_seq(g, doc_seq, 2);
+        int64[2]:doc_seq = [r_entry => int64, r_nl => int64];
+        int32:r_doc_entry = _!npk_rule_seq(g, doc_seq => int64, 2);
         
         // Document: Entry*
-        int32:r_doc = npk_rule_repeat(g, r_doc_entry, 0);
-        npk_grammar_bind(g, r_doc, AST_TOML_DOCUMENT);
+        int32:r_doc = _!npk_rule_repeat(g, r_doc_entry, 0);
+        _!npk_grammar_bind(g, r_doc, AST_TOML_DOCUMENT);
         
-        return g;
+        pass(g);
     };

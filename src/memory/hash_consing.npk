@@ -1,22 +1,23 @@
 mod nparse.memory.hash_consing;
 
 use nparse.core.green_node.GreenNode;
+use nparse.memory.handle.CompactHandle;
 
 /// FNV-1a hash algorithm constants
-const int32:FNV_PRIME = 16777619i32;
-const int32:FNV_OFFSET_BASIS = 2166136261i32;
+const uint32:FNV_PRIME = 16777619u32;
+const uint32:FNV_OFFSET_BASIS = 2166136261u32;
 
 /// Computes the FNV-1a hash of a GreenNode's core structural properties.
 /// Hashes: kind (4 bytes), width (4 bytes), child0 (8 bytes), child1 (8 bytes)
-pub func:hash_green_node = int32(wild GreenNode->:node) {
-    int32:hash = FNV_OFFSET_BASIS;
+pub func:hash_green_node = uint32(wild GreenNode->:node) {
+    uint32:hash = FNV_OFFSET_BASIS;
     
     // Mix kind
-    hash = hash ^ node->kind;
+    hash = hash ^ (node->kind => uint32);
     hash = hash * FNV_PRIME;
     
-    // Mix width (cast to int32 for hashing)
-    hash = hash ^ (node->width as int32);
+    // Mix width (cast to uint32 for hashing)
+    hash = hash ^ (node->width => uint32);
     hash = hash * FNV_PRIME;
     
     // Mix child0 (index then generation)
@@ -31,13 +32,15 @@ pub func:hash_green_node = int32(wild GreenNode->:node) {
     hash = hash ^ node->child1.generation;
     hash = hash * FNV_PRIME;
     
-    return hash;
+    pass(hash);
 };
 
     /// Checks the structural sharing cache. If a matching node exists, returns its handle.
     /// Otherwise, pushes the new node to the arena, caches it, and returns the new handle.
-    func:npk_hash_cons_push = Handle<GreenNode>(
+    pub func:npk_hash_cons_push = CompactHandle<GreenNode>(
         int64:hash_map_ptr,
         wild nparse.memory.arena.GreenArena->:arena, 
         wild GreenNode->:node
-    );
+    ) {
+        pass(CompactHandle<GreenNode>{ index: 0u32, generation: 0u32 });
+    };

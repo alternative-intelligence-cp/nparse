@@ -5,18 +5,19 @@ use nparse.core.red_node.RedNode;
     /// Allocates an arbitrary chunk of memory in the TLC ring buffer.
     pub func:npk_tlc_alloc = wild any->(int64:size) {
         // Native TLC allocation using alloc
-        return alloc(size) => wild any->;
+        pass(alloc(size) => wild any->);
     };
     
     /// Convenience function that allocates exactly 32 bytes (size of a RedNode) in the TLC.
     pub func:npk_tlc_alloc_red_node = wild any->() {
-        return alloc(32i64) => wild any->;
+        pass(alloc(32i64) => wild any->);
     };
     
     /// Flushes the TLC, destroying all ephemeral RedNodes that were allocated
     /// during the current semantic pass. Must be called explicitly unless wrapped
     /// in the RAII Context manager.
-    pub func:npk_tlc_flush = void() {
+    pub func:npk_tlc_flush = NIL() {
         // In a true ring buffer implementation, this just resets the offset counter.
         // For now, it's a no-op as memory is reclaimed per scope.
+        pass(NIL);
     };

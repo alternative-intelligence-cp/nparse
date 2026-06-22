@@ -1,7 +1,7 @@
 mod nparse.memory.arena;
 
 use nparse.core.green_node.GreenNode;
-use nparse.memory.handle.Handle;
+use nparse.memory.handle.CompactHandle;
 
 /// An append-only generational arena allocator specifically designed for GreenNodes.
 /// It uses a generational array to guarantee memory safety without dynamic allocation overhead.
@@ -18,28 +18,29 @@ pub struct:GreenArena = {
         int64:bytes = initial_capacity * 32i64;
         wild int8->:ptr = alloc(bytes);
         // We cast the pointer to int64 to act as the opaque Handle arena base
-        return ptr => int64;
+        pass(ptr => int64);
     };
     
     /// Destroys the GreenArena and frees all memory back to the OS.
-    pub func:npk_arena_destroy = void(int64:arena_ptr) {
+    pub func:npk_arena_destroy = NIL(int64:arena_ptr) {
         if arena_ptr != 0i64 {
             wild int8->:ptr = arena_ptr => wild int8->;
             dalloc(ptr);
         }
+        pass(NIL);
     };
     
     /// Pushes a new node into the arena and returns its generational Handle.
-    pub func:npk_arena_push = Handle<T>(int64:arena_ptr, wild any->:node_ptr) {
+    pub func:npk_arena_push = CompactHandle<T>(int64:arena_ptr, wild any->:node_ptr) {
         // Implementation stub for tracking generation index
         // In a full implementation, we would maintain an offset counter,
         // use mmov() to copy the node data into the arena, and return the Handle.
-        return Handle<T>{ index = 0i32, generation = 1i32 };
+        pass(CompactHandle<T>{ index: 0u32, generation: 1u32 });
     };
     
     /// Retrieves a pointer to the GreenNode associated with the given Handle.
-    pub func:npk_arena_get = wild any->(int64:arena_ptr, Handle<T>:handle) {
+    pub func:npk_arena_get = wild any->(int64:arena_ptr, CompactHandle<T>:handle) {
         // Implementation stub
         // ptr = arena_ptr + (handle.index * 32);
-        return NULL;
+        pass(NULL);
     };

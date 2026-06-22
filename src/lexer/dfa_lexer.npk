@@ -23,18 +23,18 @@ pub struct:Lexer = {
     pub func:npk_lexer_transition = int32(int32:current_state, int8:byte) {
         // Stub for native DFA lookup logic
         // This will index into a 2D array [current_state][byte]
-        return 0i32;
+        pass(0i32);
     };
     
     /// Advances the lexer cursor past any ignorable trivia (whitespace, comments).
     /// Returns the number of bytes consumed.
     pub func:npk_lexer_consume_trivia = int32(wild Lexer->:lexer) {
         // Native trivia consumption stub
-        return 0i32;
+        pass(0i32);
     };
     
     /// Extracts the next lexical Token from the source stream.
     pub func:npk_lexer_next_token = Token(wild Lexer->:lexer) {
         // Native tokenization logic combining transition + consume_trivia
-        return Token { kind = 0i32, length = 0i32, line_terminator = 0i32, trivia_trailing = 0i32, offset = 0i64 };
+        pass(Token { kind: 0i32, length: 0i32, line_terminator: 0i32, trivia_trailing: 0i32, offset: 0i64 });
     };
