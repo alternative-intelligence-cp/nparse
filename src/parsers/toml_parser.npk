@@ -18,7 +18,6 @@ const int32:AST_TOML_TABLE_HEADER = 200i32;
 const int32:AST_TOML_KEY_VALUE    = 201i32;
 const int32:AST_TOML_DOCUMENT     = 202i32;
 
-extern "nitpick_nparse_sys" {
     /// Bootstraps and returns a Grammar handle for parsing TOML documents.
     func:npk_parser_toml_create = int64() {
         int64:g = npk_grammar_create();
@@ -50,4 +49,3 @@ extern "nitpick_nparse_sys" {
         
         return g;
     };
-}

@@ -7,7 +7,6 @@ use nparse.engine.execute.ParseResult;
 /// Pre-defined standard node kind for error representation.
 const int32:AST_ERROR_NODE_KIND = 0i32;
 
-extern "nitpick_nparse_sys" {
     /// Generates an AST_ERROR node wrapping the malformed or unexpected token.
     /// This prevents the parser from aborting and preserves the lossless CST constraint.
     func:npk_recover_create_error_node = ParseResult(int64:arena_ptr, int64:bad_token_ptr);
@@ -16,4 +15,3 @@ extern "nitpick_nparse_sys" {
     /// Boundaries are typically block ends ('}') or statement terminators (';').
     /// Returns the number of tokens skipped so the parser can resume cleanly.
     func:npk_recover_sync_forward = int32(int64:lexer_ptr, wild int32->:sync_tokens, int32:sync_count);
-}

@@ -2,7 +2,6 @@ mod nparse.memory.tlc;
 
 use nparse.core.red_node.RedNode;
 
-extern "nitpick_nparse_sys" {
     /// Allocates an ephemeral block of memory on the Thread-Local Cache (TLC).
     /// This memory is flushed automatically when the current traversal pass completes.
     func:npk_tlc_alloc = wild int8->(int64:size_in_bytes);
@@ -13,4 +12,3 @@ extern "nitpick_nparse_sys" {
     /// Flushes all TLC allocations for the current thread.
     /// MUST be called at the end of a semantic pass.
     func:npk_tlc_flush = void();
-}

@@ -9,7 +9,6 @@ pub struct:PrecedenceTable = {
     wild int8->:associativity; // 0 = Left, 1 = Right
 };
 
-extern "nitpick_nparse_sys" {
     /// Initializes a flat precedence table capable of holding up to max_token_id.
     func:npk_precedence_table_create = wild PrecedenceTable->(int32:max_token_id);
     
@@ -21,4 +20,3 @@ extern "nitpick_nparse_sys" {
     
     /// Fast O(1) lookup: returns 1 if right-associative, 0 otherwise.
     func:npk_precedence_table_get_assoc = int8(wild PrecedenceTable->:table, int32:token_id);
-}

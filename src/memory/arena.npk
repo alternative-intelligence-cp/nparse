@@ -12,7 +12,6 @@ pub struct:GreenArena = {
     wild int32->:generations; // Tracks generation for each index to prevent use-after-free
 };
 
-extern "nitpick_nparse_sys" {
     /// Creates a new GreenArena with the specified initial capacity
     func:npk_arena_create = wild GreenArena->(int64:initial_capacity);
     
@@ -25,4 +24,3 @@ extern "nitpick_nparse_sys" {
     /// Retrieves a pointer to a GreenNode by its handle.
     /// Returns 0i64 (null) if the handle generation does not match (use-after-free protection).
     func:npk_arena_get = wild GreenNode->(wild GreenArena->:arena, Handle<GreenNode>:handle);
-}

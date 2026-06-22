@@ -1,6 +1,5 @@
 mod nparse.api.combinators;
 
-extern "nitpick_nparse_sys" {
     /// Maps a specific lexical token type directly to a fundamental parsing rule ID.
     func:npk_rule_token    = int32(int64:g, int32:token_kind);
     
@@ -29,4 +28,3 @@ extern "nitpick_nparse_sys" {
     
     /// Synthesizes a unified Pratt Expression parser rule using arrays of defined prefix and infix rules.
     func:npk_rule_pratt_expr = int32(int64:g, int64:prefix_rules_ptr, int32:pref_count, int64:infix_rules_ptr, int32:inf_count);
-}

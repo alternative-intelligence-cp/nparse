@@ -16,7 +16,6 @@ pub enum:ParseResult = {
 const int32:ERR_PARSE_DEPTH_EXCEEDED = -1i32;
 const int32:ERR_ZERO_WIDTH_LOOP      = -2i32;
 
-extern "nitpick_nparse_sys" {
     /// Core execution entrypoint. Matches the grammar against the source.
     /// Strictly limits recursion via max_recursion_depth to prevent call-stack exhaustion attacks.
     func:npk_parse = ParseResult(int64:grammar, StrView:source, uint32:max_recursion_depth);
@@ -32,4 +31,3 @@ extern "nitpick_nparse_sys" {
     /// Zero-Width Loop Defense: Assert progress within `repeat` combinators.
     /// Evaluates `prove(cursor_after > cursor_before)`. If false, aborts the loop to prevent infinite hangs.
     func:npk_prove_progress = bool(int64:cursor_before, int64:cursor_after);
-}

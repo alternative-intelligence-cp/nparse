@@ -15,7 +15,6 @@ pub struct:Lexer = {
     int64:cursor;       // Current absolute byte offset
 };
 
-extern "nitpick_nparse_sys" {
     /// Initializes the lexer state with the given source view.
     func:npk_lexer_init = Lexer(StrView:source);
     
@@ -31,4 +30,3 @@ extern "nitpick_nparse_sys" {
     /// Safely packages the primary semantic token along with its leading
     /// and trailing trivia into a single zero-copy Token structure.
     func:npk_lexer_next_token = Token(wild Lexer->:lexer);
-}

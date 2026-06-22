@@ -1,6 +1,5 @@
 mod nparse.plugins.loader;
 
-extern "nitpick_nparse_sys" {
     /// Loads an external dynamic library (.so on Linux, .dll on Windows).
     /// The plugin must export a standard `npk_plugin_init` symbol.
     /// Returns a 64-bit handle to the loaded module, or 0 if failed.
@@ -11,4 +10,3 @@ extern "nitpick_nparse_sys" {
     
     /// Retrieves a function pointer to an exported symbol within the loaded plugin.
     func:npk_plugin_get_symbol = int64(int64:plugin_handle, wild int8->:symbol_name_cstr);
-}

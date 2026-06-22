@@ -34,7 +34,6 @@ pub func:hash_green_node = int32(wild GreenNode->:node) {
     return hash;
 };
 
-extern "nitpick_nparse_sys" {
     /// Checks the structural sharing cache. If a matching node exists, returns its handle.
     /// Otherwise, pushes the new node to the arena, caches it, and returns the new handle.
     func:npk_hash_cons_push = Handle<GreenNode>(
@@ -42,4 +41,3 @@ extern "nitpick_nparse_sys" {
         wild nparse.memory.arena.GreenArena->:arena, 
         wild GreenNode->:node
     );
-}

@@ -21,7 +21,6 @@ const int32:AST_JSON_OBJECT = 100i32;
 const int32:AST_JSON_ARRAY  = 101i32;
 const int32:AST_JSON_MEMBER = 102i32;
 
-extern "nitpick_nparse_sys" {
     /// Bootstraps and returns a Grammar handle for parsing JSON documents.
     func:npk_parser_json_create = int64() {
         int64:g = npk_grammar_create();
@@ -58,4 +57,3 @@ extern "nitpick_nparse_sys" {
         
         return g;
     };
-}
