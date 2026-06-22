@@ -11,12 +11,23 @@
 void* npk_arena_create(int64_t initial_capacity) { return NULL; }
 void npk_arena_destroy(void* arena) {}
 struct Handle { int32_t index; int32_t generation; };
+
+/*@
+  requires arena != \null;
+  requires node != \null;
+  ensures \result.index >= 0;
+  ensures \result.generation >= 0;
+  assigns *((char*)arena + (0 .. 32));
+*/
 struct Handle npk_arena_push(void* arena, void* node) { struct Handle h = {0,0}; return h; }
 void* npk_arena_get(void* arena, struct Handle handle) { return NULL; }
 
 // --- Memory/TLC ---
 void* npk_tlc_alloc(int64_t size) { return NULL; }
 void* npk_tlc_alloc_red_node() { return NULL; }
+/*@
+  assigns \nothing;
+*/
 void npk_tlc_flush() {}
 
 // --- Hash Consing ---
