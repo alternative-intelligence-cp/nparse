@@ -37,24 +37,24 @@ const int32:AST_JSON_MEMBER = 102i32;
         
         // Member: STRING ":" Value
         int64[3]:member_seq = [r_str => int64, (_!npk_rule_token(g, T_COLON)) => int64, r_value => int64];
-        int32:r_member = _!npk_rule_seq(g, member_seq => int64, 3);
-        _!npk_grammar_bind(g, r_member, AST_JSON_MEMBER);
+        int32:r_member = _!npk_rule_seq(g, @member_seq => int64, 3);
+        _?npk_grammar_bind(g, r_member, AST_JSON_MEMBER);
         
         // Object: "{" [Member ("," Member)*] "}"
         // Note: simplified here to avoid pointer math in pure Nitpick
         int64[3]:obj_seq = [(_!npk_rule_token(g, T_LBRACE)) => int64, (_!npk_rule_repeat(g, r_member, 0)) => int64, (_!npk_rule_token(g, T_RBRACE)) => int64];
-        int32:r_object = _!npk_rule_seq(g, obj_seq => int64, 3);
-        _!npk_grammar_bind(g, r_object, AST_JSON_OBJECT);
+        int32:r_object = _!npk_rule_seq(g, @obj_seq => int64, 3);
+        _?npk_grammar_bind(g, r_object, AST_JSON_OBJECT);
         
         // Array: "[" [Value ("," Value)*] "]"
         int64[3]:arr_seq = [(_!npk_rule_token(g, T_LBRACKET)) => int64, (_!npk_rule_repeat(g, r_value, 0)) => int64, (_!npk_rule_token(g, T_RBRACKET)) => int64];
-        int32:r_array = _!npk_rule_seq(g, arr_seq => int64, 3);
-        _!npk_grammar_bind(g, r_array, AST_JSON_ARRAY);
+        int32:r_array = _!npk_rule_seq(g, @arr_seq => int64, 3);
+        _?npk_grammar_bind(g, r_array, AST_JSON_ARRAY);
         
         // Value: Object | Array | String | Number | true | false | null
         int64[7]:val_choice = [r_object => int64, r_array => int64, r_str => int64, r_num => int64, r_true => int64, r_false => int64, r_null => int64];
-        int32:actual_r_value = _!npk_rule_choice(g, val_choice => int64, 7);
-        _!npk_rule_define(g, r_value, actual_r_value);
+        int32:actual_r_value = _!npk_rule_choice(g, @val_choice => int64, 7);
+        _?npk_rule_define(g, r_value, actual_r_value);
         
         pass(g);
     };

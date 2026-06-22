@@ -14,23 +14,23 @@ pub func:hash_green_node = uint32(wild GreenNode->:node) {
     
     // Mix kind
     hash = hash ^ (node->kind => uint32);
-    hash = hash * FNV_PRIME;
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
     
     // Mix width (cast to uint32 for hashing)
     hash = hash ^ (node->width => uint32);
-    hash = hash * FNV_PRIME;
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
     
     // Mix first_child (index then generation)
     hash = hash ^ node->first_child.index;
-    hash = hash * FNV_PRIME;
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
     hash = hash ^ node->first_child.generation;
-    hash = hash * FNV_PRIME;
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
     
     // Mix next_sibling (index then generation)
     hash = hash ^ node->next_sibling.index;
-    hash = hash * FNV_PRIME;
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
     hash = hash ^ node->next_sibling.generation;
-    hash = hash * FNV_PRIME;
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
     
     pass(hash);
 };
