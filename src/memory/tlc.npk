@@ -19,7 +19,7 @@ pub struct:ThreadLocalCache = {
     };
     
     pub func:npk_tlc_destroy = NIL(wild ThreadLocalCache->:tlc) {
-        if tlc != NULL {
+        if (tlc != NULL) {
             dalloc(tlc->buffer);
             dalloc(tlc => wild int8->);
         }
@@ -28,7 +28,7 @@ pub struct:ThreadLocalCache = {
 
     /// Allocates an arbitrary chunk of memory in the TLC ring buffer.
     pub func:npk_tlc_alloc = wild any->(wild ThreadLocalCache->:tlc, int64:size) {
-        if tlc->cursor + size > tlc->capacity {
+        if (tlc->cursor + size > tlc->capacity) {
             pass(NULL);
         }
         wild int8->:ptr = tlc->buffer + tlc->cursor;
@@ -45,7 +45,7 @@ pub struct:ThreadLocalCache = {
     /// during the current semantic pass. Must be called explicitly unless wrapped
     /// in the RAII Context manager.
     pub func:npk_tlc_flush = NIL(wild ThreadLocalCache->:tlc) {
-        if tlc != NULL {
+        if (tlc != NULL) {
             tlc->cursor = 0i64;
         }
         pass(NIL);

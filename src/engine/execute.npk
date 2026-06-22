@@ -11,7 +11,7 @@ const int32:ERR_ZERO_WIDTH_LOOP      = -2i32;
     /// Core execution entrypoint. Matches the grammar against the source.
     /// Strictly limits recursion via max_recursion_depth to prevent call-stack exhaustion attacks.
     pub func:npk_parse = Result<CompactHandle<GreenNode>>(int64:grammar, StrView:source, uint32:max_recursion_depth) {
-        if max_recursion_depth == 0u32 {
+        if (max_recursion_depth == 0u32) {
             fail(ERR_PARSE_DEPTH_EXCEEDED);
         }
         // Native Nitpick parser loop implementation stub
@@ -34,7 +34,7 @@ const int32:ERR_ZERO_WIDTH_LOOP      = -2i32;
     /// Zero-Width Loop Defense: Assert progress within `repeat` combinators.
     /// Evaluates `prove(cursor_after > cursor_before)`. If false, aborts the loop to prevent infinite hangs.
     pub func:npk_prove_progress = bool(int64:cursor_before, int64:cursor_after) {
-        if cursor_after <= cursor_before {
+        if (cursor_after <= cursor_before) {
             pass(false);
         }
         pass(true);

@@ -24,7 +24,7 @@ pub struct:GreenArena = {
     
     /// Destroys the GreenArena and frees all memory back to the OS.
     pub func:npk_arena_destroy = NIL(wild GreenArena->:arena) {
-        if arena != NULL {
+        if (arena != NULL) {
             dalloc(arena->data => wild int8->);
             dalloc(arena->generations => wild int8->);
             dalloc(arena => wild int8->);
@@ -34,7 +34,7 @@ pub struct:GreenArena = {
     
     /// Pushes a new node into the arena and returns its generational Handle.
     pub func:npk_arena_push = CompactHandle<GreenNode>(wild GreenArena->:arena, wild GreenNode->:node_ptr) {
-        if arena->length >= arena->capacity {
+        if (arena->length >= arena->capacity) {
             pass(CompactHandle<GreenNode>{ index: 0u32, generation: 0u32 });
         }
         int64:idx = arena->length;
@@ -43,11 +43,11 @@ pub struct:GreenArena = {
         wild GreenNode->:dst = arena->data + idx;
         mmov(dst => wild int8->, node_ptr => wild int8->, 32i64);
         
-        int32:gen = arena->generations[idx];
-        if gen == 0i32 {
-            gen = 1i32;
+        uint32:gen = arena->generations[idx];
+        if (gen == 0u32) {
+            gen = 1u32;
         } else {
-            gen = gen + 1i32;
+            gen = gen + 1u32;
         }
         arena->generations[idx] = gen;
         
@@ -57,10 +57,10 @@ pub struct:GreenArena = {
     /// Retrieves a pointer to the GreenNode associated with the given Handle.
     pub func:npk_arena_get = wild GreenNode->(wild GreenArena->:arena, CompactHandle<GreenNode>:handle) {
         int64:idx = handle.index => int64;
-        if idx >= arena->length {
+        if (idx >= arena->length) {
             pass(NULL);
         }
-        if arena->generations[idx] != (handle.generation => int32) {
+        if (arena->generations[idx] != (handle.generation => uint32)) {
             pass(NULL);
         }
         pass(arena->data + idx);

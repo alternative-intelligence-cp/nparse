@@ -4,11 +4,11 @@
 /// We use a 32-bit index and a 32-bit generation counter to keep the handle
 /// strictly 8-bytes in size. This ensures the GreenNode stays exactly 32-bytes
 /// even with two inlined handles for Small Vector Optimization (SVO).
-pub struct:CompactHandle[T] = {
+pub struct<T>:CompactHandle = {
     uint32:index;
     uint32:generation;
 };
 
-pub func:is_null[T] = bool(CompactHandle[T]:h) {
+pub func<T>:is_null = bool(CompactHandle<*T>:h) {
     pass(h.index == 0u32 && h.generation == 0u32);
 };

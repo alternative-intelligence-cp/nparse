@@ -23,7 +23,7 @@ pub struct:LineCol = {
     };
 
     pub func:source_map_destroy = NIL(wild SourceMap->:sm) {
-        if sm != NULL {
+        if (sm != NULL) {
             dalloc(sm->line_starts => wild int8->);
             dalloc(sm => wild int8->);
         }
@@ -32,7 +32,7 @@ pub struct:LineCol = {
 
     /// Records the absolute byte offset of a new line.
     pub func:source_map_add_line = NIL(wild SourceMap->:sm, int64:offset) {
-        if sm->line_count >= sm->capacity {
+        if (sm->line_count >= sm->capacity) {
             // Pseudo dynamic array expansion
             pass(NIL); 
         }
@@ -48,9 +48,9 @@ pub struct:LineCol = {
         int32:high = sm->line_count - 1i32;
         int32:ans = 0i32;
         
-        while low <= high {
+        while (low <= high) {
             int32:mid = low + ((high - low) / 2i32);
-            if sm->line_starts[mid => int64] <= offset {
+            if (sm->line_starts[mid => int64] <= offset) {
                 ans = mid;
                 low = mid + 1i32;
             } else {

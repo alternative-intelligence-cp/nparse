@@ -20,7 +20,7 @@ pub struct:ScopedSemanticPass = {
     /// does not automatically call destructors on custom structs.
     /// Enforces the Priority 1 Safety mandate by preventing TLC memory leaks.
     pub func:scoped_pass_destroy = NIL(ScopedSemanticPass:self) {
-        if self.active == 1i8 {
+        if (self.active == 1i8) {
             npk_tlc_flush(self.tlc);
             npk_tlc_destroy(self.tlc);
         }
