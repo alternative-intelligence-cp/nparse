@@ -18,7 +18,7 @@ pub struct:GreenArena = {
         arena->capacity = initial_capacity;
         arena->length = 0i64;
         arena->data = alloc(initial_capacity * 32i64) => wild GreenNode->;
-        arena->generations = alloc(initial_capacity * 4i64) => wild int32->;
+        arena->generations = alloc(initial_capacity * 4i64) => wild uint32->;
         pass(arena);
     };
     
@@ -40,16 +40,17 @@ pub struct:GreenArena = {
         int64:idx = arena->length;
         arena->length = arena->length + 1i64;
         
-        wild GreenNode->:dst = arena->data + idx;
+        wild GreenNode->:dst = ((arena->data => int64) + (idx * 32i64)) => wild GreenNode->;
         mmov(dst => wild int8->, node_ptr => wild int8->, 32i64);
         
-        uint32:gen = arena->generations[idx];
+        wild uint32->:gen_ptr = ((arena->generations => int64) + (idx * 4i64)) => wild uint32->;
+        uint32:gen = <-gen_ptr;
         if (gen == 0u32) {
             gen = 1u32;
         } else {
             gen = gen + 1u32;
         }
-        arena->generations[idx] = gen;
+        <-gen_ptr = gen;
         
         pass(CompactHandle<GreenNode>{ index: (idx => uint32), generation: (gen => uint32) });
     };
@@ -60,8 +61,9 @@ pub struct:GreenArena = {
         if (idx >= arena->length) {
             pass(NULL);
         }
-        if (arena->generations[idx] != (handle.generation => uint32)) {
+        wild uint32->:gen_ptr = ((arena->generations => int64) + (idx * 4i64)) => wild uint32->;
+        if ((<-gen_ptr) != (handle.generation => uint32)) {
             pass(NULL);
         }
-        pass(arena->data + idx);
+        pass(((arena->data => int64) + (idx * 32i64)) => wild GreenNode->);
     };

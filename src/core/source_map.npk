@@ -33,11 +33,13 @@ pub struct:LineCol = {
     /// Records the absolute byte offset of a new line.
     pub func:source_map_add_line = NIL(wild SourceMap->:sm, int64:offset) {
         if (sm->line_count >= sm->capacity) {
-            // Pseudo dynamic array expansion
-            pass(NIL); 
+            int32:new_cap = sm->capacity * 2i32;
+            int64:new_bytes = (new_cap => int64) * 8i64;
+            sm->line_starts = ralloc(sm->line_starts => wild any->, new_bytes) => int64->;
+            sm->capacity = new_cap;
         }
         int64:idx = sm->line_count => int64;
-        sm->line_starts[idx] = offset;
+        <-( ((sm->line_starts => int64) + (idx * 8i64)) => wild int64-> ) = offset;
         sm->line_count = sm->line_count + 1i32;
         pass(NIL);
     };
@@ -50,7 +52,7 @@ pub struct:LineCol = {
         
         while (low <= high) {
             int32:mid = low + ((high - low) / 2i32);
-            if (sm->line_starts[mid => int64] <= offset) {
+            if (<-( ((sm->line_starts => int64) + ((mid => int64) * 8i64)) => wild int64-> ) <= offset) {
                 ans = mid;
                 low = mid + 1i32;
             } else {

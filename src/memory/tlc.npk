@@ -29,7 +29,10 @@ pub struct:ThreadLocalCache = {
     /// Allocates an arbitrary chunk of memory in the TLC ring buffer.
     pub func:npk_tlc_alloc = wild any->(wild ThreadLocalCache->:tlc, int64:size) {
         if (tlc->cursor + size > tlc->capacity) {
-            pass(NULL);
+            int64:new_cap = tlc->capacity * 2i64;
+            if (new_cap < tlc->cursor + size) { new_cap = tlc->cursor + size + 4096i64; }
+            tlc->buffer = ralloc(tlc->buffer => wild any->, new_cap) => int8->;
+            tlc->capacity = new_cap;
         }
         wild int8->:ptr = tlc->buffer + tlc->cursor;
         tlc->cursor = tlc->cursor + size;
