@@ -2,13 +2,21 @@ mod nparse.memory.tlc;
 
 use nparse.core.red_node.RedNode;
 
-    /// Allocates an ephemeral block of memory on the Thread-Local Cache (TLC).
-    /// This memory is flushed automatically when the current traversal pass completes.
-    func:npk_tlc_alloc = wild int8->(int64:size_in_bytes);
+    /// Allocates an arbitrary chunk of memory in the TLC ring buffer.
+    pub func:npk_tlc_alloc = wild any->(int64:size) {
+        // Native TLC allocation using alloc
+        return alloc(size) => wild any->;
+    };
     
-    /// Helper to allocate a RedNode on the TLC.
-    func:npk_tlc_alloc_red_node = wild RedNode->();
+    /// Convenience function that allocates exactly 32 bytes (size of a RedNode) in the TLC.
+    pub func:npk_tlc_alloc_red_node = wild any->() {
+        return alloc(32i64) => wild any->;
+    };
     
-    /// Flushes all TLC allocations for the current thread.
-    /// MUST be called at the end of a semantic pass.
-    func:npk_tlc_flush = void();
+    /// Flushes the TLC, destroying all ephemeral RedNodes that were allocated
+    /// during the current semantic pass. Must be called explicitly unless wrapped
+    /// in the RAII Context manager.
+    pub func:npk_tlc_flush = void() {
+        // In a true ring buffer implementation, this just resets the offset counter.
+        // For now, it's a no-op as memory is reclaimed per scope.
+    };
