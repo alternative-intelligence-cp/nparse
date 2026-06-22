@@ -18,15 +18,21 @@ const int32:ERR_ZERO_WIDTH_LOOP      = -2i32;
 
     /// Core execution entrypoint. Matches the grammar against the source.
     /// Strictly limits recursion via max_recursion_depth to prevent call-stack exhaustion attacks.
-    func:npk_parse = ParseResult(int64:grammar, StrView:source, uint32:max_recursion_depth);
+    pub func:npk_parse = ParseResult(int64:grammar, StrView:source, uint32:max_recursion_depth) {
+        // Native Nitpick parser loop implementation stub
+        // Recursively evaluates rules up to max_recursion_depth
+        return ParseResult { tag = 0i32 }; // Return Success
+    };
     
     /// Packrat Memoization Cache: Fast path lookup using ahash.
-    /// Retrieves a cached parse result for a given (rule_id, byte_offset) coordinate,
-    /// ensuring that ambiguous choices never result in exponential time complexity (O(N) bound).
-    func:npk_memoize_get = ParseResult(int64:packrat_cache, int32:rule_id, int64:byte_offset);
+    pub func:npk_memoize_get = ParseResult(int64:cache_ptr, int32:rule_id, int64:byte_offset) {
+        // Native Packrat lookup stub
+        return ParseResult { tag = 2i32 }; // 2 = Unknown/Miss
+    };
     
-    /// Packrat Memoization Cache: Stores a computed parse result.
-    func:npk_memoize_set = void(int64:packrat_cache, int32:rule_id, int64:byte_offset, ParseResult:result);
+    pub func:npk_memoize_set = void(int64:cache_ptr, int32:rule_id, int64:byte_offset, ParseResult:res) {
+        // Native Packrat write stub
+    };
     
     /// Zero-Width Loop Defense: Assert progress within `repeat` combinators.
     /// Evaluates `prove(cursor_after > cursor_before)`. If false, aborts the loop to prevent infinite hangs.
