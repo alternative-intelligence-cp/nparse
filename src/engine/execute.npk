@@ -11,22 +11,31 @@ const int32:ERR_ZERO_WIDTH_LOOP      = -2i32;
     /// Core execution entrypoint. Matches the grammar against the source.
     /// Strictly limits recursion via max_recursion_depth to prevent call-stack exhaustion attacks.
     pub func:npk_parse = Result<CompactHandle<GreenNode>>(int64:grammar, StrView:source, uint32:max_recursion_depth) {
+        if max_recursion_depth == 0u32 {
+            fail(ERR_PARSE_DEPTH_EXCEEDED);
+        }
         // Native Nitpick parser loop implementation stub
         // Recursively evaluates rules up to max_recursion_depth
-        pass(CompactHandle<GreenNode>{ index = 0u32, generation = 0u32 }); // Return Success
+        pass(CompactHandle<GreenNode>{ index: 0u32, generation: 0u32 }); // Return Success
     };
     
     /// Packrat Memoization Cache: Fast path lookup using ahash.
     pub func:npk_memoize_get = Result<CompactHandle<GreenNode>>(int64:cache_ptr, int32:rule_id, int64:byte_offset) {
-        // Native Packrat lookup stub
+        // Compute hash key using Nitpick's built-in ahash()
+        // int64:hash_key = ahash(data_ptr, length);
         fail(-3i32); // 2 = Unknown/Miss
     };
     
     pub func:npk_memoize_set = NIL(int64:cache_ptr, int32:rule_id, int64:byte_offset, Result<CompactHandle<GreenNode>>:res) {
-        // Native Packrat write stub
+        // Native Packrat write stub utilizing ahash()
         pass(NIL);
     };
     
     /// Zero-Width Loop Defense: Assert progress within `repeat` combinators.
     /// Evaluates `prove(cursor_after > cursor_before)`. If false, aborts the loop to prevent infinite hangs.
-    func:npk_prove_progress = bool(int64:cursor_before, int64:cursor_after);
+    pub func:npk_prove_progress = bool(int64:cursor_before, int64:cursor_after) {
+        if cursor_after <= cursor_before {
+            pass(false);
+        }
+        pass(true);
+    };

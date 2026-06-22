@@ -21,8 +21,10 @@ pub struct:Lexer = {
     /// Executes one state transition in the DFA based on the current byte.
     /// Returns the new state ID, or -1 if the state is invalid/rejecting.
     pub func:npk_lexer_transition = int32(int32:current_state, int8:byte) {
+        // Cast to uint8 to prevent negative indices from causing out-of-bounds reads
+        uint8:u_byte = byte => uint8;
         // Stub for native DFA lookup logic
-        // This will index into a 2D array [current_state][byte]
+        // This will index into a 2D array [current_state][u_byte]
         pass(0i32);
     };
     

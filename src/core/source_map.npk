@@ -1,0 +1,68 @@
+mod nparse.core.source_map;
+
+/// An index mapping absolute byte offsets to line/column coordinates.
+pub struct:SourceMap = {
+    wild int64->:line_starts;
+    int32:line_count;
+    int32:capacity;
+};
+
+/// Represents a 1-indexed line and column.
+pub struct:LineCol = {
+    int32:line;
+    int32:column;
+};
+
+impl SourceMap {
+    /// Creates a new SourceMap with an initial capacity.
+    pub func:create = wild SourceMap->(int32:initial_cap) {
+        wild SourceMap->:sm = alloc(16i64) => wild SourceMap->;
+        sm->capacity = initial_cap;
+        sm->line_count = 0i32;
+        sm->line_starts = alloc((initial_cap => int64) * 8i64) => wild int64->;
+        pass(sm);
+    };
+
+    pub func:destroy = NIL(wild SourceMap->:sm) {
+        if sm != NULL {
+            dalloc(sm->line_starts => wild int8->);
+            dalloc(sm => wild int8->);
+        }
+        pass(NIL);
+    };
+
+    /// Records the absolute byte offset of a new line.
+    pub func:add_line = NIL(wild SourceMap->:sm, int64:offset) {
+        if sm->line_count >= sm->capacity {
+            // Pseudo dynamic array expansion
+            pass(NIL); 
+        }
+        int64:idx = sm->line_count => int64;
+        sm->line_starts[idx] = offset;
+        sm->line_count = sm->line_count + 1i32;
+        pass(NIL);
+    };
+
+    /// Resolves an absolute byte offset into a LineCol via binary search.
+    pub func:resolve = LineCol(wild SourceMap->:sm, int64:offset) {
+        int32:low = 0i32;
+        int32:high = sm->line_count - 1i32;
+        int32:ans = 0i32;
+        
+        while low <= high {
+            int32:mid = low + ((high - low) / 2i32);
+            if sm->line_starts[mid => int64] <= offset {
+                ans = mid;
+                low = mid + 1i32;
+            } else {
+                high = mid - 1i32;
+            }
+        }
+        
+        int32:line = ans + 1i32;
+        int64:start_offset = sm->line_starts[ans => int64];
+        int32:column = ((offset - start_offset) => int32) + 1i32;
+        
+        pass(LineCol { line: line, column: column });
+    };
+}

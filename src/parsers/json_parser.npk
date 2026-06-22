@@ -32,8 +32,8 @@ const int32:AST_JSON_MEMBER = 102i32;
         int32:r_false = _!npk_rule_token(g, T_FALSE);
         int32:r_null  = _!npk_rule_token(g, T_NULL);
         
-        // Forward declare value for recursion (assuming id 999 for Value)
-        int32:r_value = 999i32; 
+        // Forward declare value for recursion
+        int32:r_value = _!npk_rule_forward(g); 
         
         // Member: STRING ":" Value
         int64[3]:member_seq = [r_str => int64, (_!npk_rule_token(g, T_COLON)) => int64, r_value => int64];
@@ -53,7 +53,8 @@ const int32:AST_JSON_MEMBER = 102i32;
         
         // Value: Object | Array | String | Number | true | false | null
         int64[7]:val_choice = [r_object => int64, r_array => int64, r_str => int64, r_num => int64, r_true => int64, r_false => int64, r_null => int64];
-        r_value = _!npk_rule_choice(g, val_choice => int64, 7); // Bind to 999 internally via backend
+        int32:actual_r_value = _!npk_rule_choice(g, val_choice => int64, 7);
+        _!npk_rule_define(g, r_value, actual_r_value);
         
         pass(g);
     };
