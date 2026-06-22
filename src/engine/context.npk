@@ -1,0 +1,26 @@
+mod nparse.engine.context;
+
+use nparse.memory.tlc.npk_tlc_flush;
+
+/// A context manager ensuring memory safety for the ephemeral Red Tree.
+/// This utilizes Nitpick's RAII mechanics: when this struct goes out of scope,
+/// its destructor is automatically called, guaranteeing that npk_tlc_flush() 
+/// is executed even if a soft error triggers an early return.
+pub struct:ScopedSemanticPass = {
+    int8:active;
+};
+
+impl ScopedSemanticPass {
+    /// Initializes a new semantic pass boundary.
+    pub func:begin = ScopedSemanticPass() {
+        return ScopedSemanticPass { active = 1i8 };
+    };
+    
+    /// Destructor (called automatically when the struct goes out of scope).
+    /// Enforces the Priority 1 Safety mandate by preventing TLC memory leaks.
+    pub func:destroy = void(ScopedSemanticPass:self) {
+        if self.active == 1i8 {
+            npk_tlc_flush();
+        }
+    };
+}

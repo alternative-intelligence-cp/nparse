@@ -19,7 +19,7 @@ const int32:ERR_ZERO_WIDTH_LOOP      = -2i32;
 extern "nitpick_nparse_sys" {
     /// Core execution entrypoint. Matches the grammar against the source.
     /// Strictly limits recursion via max_recursion_depth to prevent call-stack exhaustion attacks.
-    func:npk_parse = ParseResult(int64:grammar, StrView:source, int32:max_recursion_depth);
+    func:npk_parse = ParseResult(int64:grammar, StrView:source, uint32:max_recursion_depth);
     
     /// Packrat Memoization Cache: Fast path lookup using ahash.
     /// Retrieves a cached parse result for a given (rule_id, byte_offset) coordinate,
