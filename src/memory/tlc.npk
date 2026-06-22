@@ -1,9 +1,9 @@
-mod nparse.memory.tlc;
+
 
 use nparse.core.red_node.RedNode;
 
 pub struct:ThreadLocalCache = {
-    wild int8->:buffer;
+    int8->:buffer;
     int64:cursor;
     int64:capacity;
 };

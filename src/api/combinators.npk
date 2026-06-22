@@ -1,4 +1,4 @@
-mod nparse.api.combinators;
+
 
     /// Maps a specific lexical token type directly to a fundamental parsing rule ID.
     /// Maps a specific lexical token type directly to a fundamental parsing rule ID.

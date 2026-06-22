@@ -1,4 +1,4 @@
-mod nparse.engine.context;
+
 
 use nparse.memory.tlc.*;
 
@@ -8,23 +8,21 @@ use nparse.memory.tlc.*;
 /// is executed even if a soft error triggers an early return.
 pub struct:ScopedSemanticPass = {
     int8:active;
-    wild ThreadLocalCache->:tlc;
+    ThreadLocalCache->:tlc;
 };
 
-impl ScopedSemanticPass {
     /// Initializes a new semantic pass boundary.
-    pub func:begin = ScopedSemanticPass() {
+    pub func:scoped_pass_begin = ScopedSemanticPass() {
         pass(ScopedSemanticPass { active: 1i8, tlc: npk_tlc_create() });
     };
     
     /// Must be explicitly called using the `defer` keyword since Nitpick 
     /// does not automatically call destructors on custom structs.
     /// Enforces the Priority 1 Safety mandate by preventing TLC memory leaks.
-    pub func:destroy = NIL(ScopedSemanticPass:self) {
+    pub func:scoped_pass_destroy = NIL(ScopedSemanticPass:self) {
         if self.active == 1i8 {
             npk_tlc_flush(self.tlc);
             npk_tlc_destroy(self.tlc);
         }
         pass(NIL);
     };
-}

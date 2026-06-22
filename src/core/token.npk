@@ -1,4 +1,4 @@
-mod nparse.core.token;
+
 
 /// A lossless token representing a single lexical unit and its associated trivia.
 pub struct:Token = {

@@ -1,10 +1,10 @@
-mod nparse.lexer.dfa_lexer;
+
 
 use nparse.core.token.Token;
 
 /// A zero-allocation view into the source buffer.
 pub struct:StrView = {
-    wild int8->:data;
+    int8->:data;
     int64:length;
 };
 

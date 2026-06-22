@@ -1,4 +1,4 @@
-mod nparse.memory.arena;
+
 
 use nparse.core.green_node.GreenNode;
 use nparse.memory.handle.CompactHandle;
@@ -8,8 +8,8 @@ use nparse.memory.handle.CompactHandle;
 pub struct:GreenArena = {
     int64:capacity;
     int64:length;
-    wild GreenNode->:data;
-    wild int32->:generations; // Tracks generation for each index to prevent use-after-free
+    GreenNode->:data;
+    uint32->:generations; // Tracks generation for each index to prevent use-after-free
 };
 
     /// Creates a new GreenArena and returns an opaque 64-bit pointer.

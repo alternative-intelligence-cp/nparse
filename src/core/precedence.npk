@@ -1,16 +1,15 @@
-mod nparse.core.precedence;
 
 /// Represents a flat, array-based lookup table for operator binding power.
 /// To guarantee O(1) performance and avoid hash-map overhead, token_kind IDs
 /// must be used directly as indices into these arrays.
 pub struct:PrecedenceTable = {
     int64:capacity;
-    wild int32->:binding_powers;
-    wild int8->:associativity; // 0 = Left, 1 = Right
+    int32->:binding_powers;
+    int32->:associativity; // 0 = Left, 1 = Right
 };
 
     /// Initializes a flat precedence table capable of holding up to max_token_id.
-    pub func:npk_precedence_table_create = wild PrecedenceTable->(int32:max_token_id) { pass(NULL); };
+    pub func:npk_precedence_table_create = PrecedenceTable->(int32:max_token_id) { pass(NULL); };
     
     /// Sets the precedence power for a specific token ID.
     pub func:npk_precedence_table_set = NIL(wild PrecedenceTable->:table, int32:token_id, int32:power, int8:is_right_assoc) { pass(NIL); };

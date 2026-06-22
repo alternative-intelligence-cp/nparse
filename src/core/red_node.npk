@@ -1,4 +1,4 @@
-mod nparse.core.red_node;
+
 
 use nparse.memory.handle.Handle;
 use nparse.core.green_node.GreenNode;
@@ -9,11 +9,10 @@ pub struct:RedNode = {
     Handle<GreenNode>:green;   // Handle to the underlying structural data
     
     // Pointers are safe here because RedNodes are transient and flushed after use.
-    wild RedNode->:parent;     // Pointer to the parent RedNode
+    RedNode->:parent;          // Pointer to the parent RedNode
     
     int64:absolute_offset;     // Absolute byte offset, lazily calculated (-1 = uncalculated)
     int32:index_in_parent;     // The index of this node in the parent's children array
     int32:padding;             // Padding for alignment
     
-    int64:children_ptr;        // wild RedNode-> (Pointer to lazily populated children array)
 };
