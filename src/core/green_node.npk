@@ -1,0 +1,25 @@
+mod nparse.core.green_node;
+
+/// A generational handle to an arena-allocated GreenNode.
+/// Assuming 8 bytes (32-bit index, 32-bit generation) to keep GreenNode at 32 bytes.
+pub struct:GreenHandle = {
+    int32:index;
+    int32:generation;
+};
+
+/// The immutable, structural, bottom-up tree node.
+/// Packed to exactly 32 bytes for optimal CPU cache utilization.
+pub struct:GreenNode = {
+    int32:kind;               // Token or AST Node kind identifier
+    tbb32:width;              // Total byte length (including all children and trivia)
+    
+    int16:child_count;        // Number of child nodes
+    int16:flags;              // Bitmask: 0x1 = contains_error, 0x2 = is_missing
+    int32:padding;            // Padding to align to 32 bytes
+    
+    // Small Vector Optimization (SVO)
+    // For child_count <= 2, these hold the children handles directly.
+    // For child_count > 2, child0 is used as a handle to an array of children.
+    GreenHandle:child0;       // 8 bytes
+    GreenHandle:child1;       // 8 bytes
+};

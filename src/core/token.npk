@@ -1,0 +1,10 @@
+mod nparse.core.token;
+
+/// A lossless token representing a single lexical unit and its associated trivia.
+pub struct:Token = {
+    int32:kind;                 // Unique identifier for the token type
+    int32:length;               // Byte length of the primary semantic token
+    int32:leading_trivia_len;   // Byte length of preceding whitespace/comments
+    int32:trailing_trivia_len;  // Byte length of succeeding whitespace/comments
+    int64:offset;               // Absolute byte offset from the start of the buffer
+};
