@@ -1,0 +1,28 @@
+mod nparse.memory.arena;
+
+use nparse.core.green_node.GreenNode;
+use nparse.memory.handle.Handle;
+
+/// An append-only generational arena allocator specifically designed for GreenNodes.
+/// It uses a generational array to guarantee memory safety without dynamic allocation overhead.
+pub struct:GreenArena = {
+    int64:capacity;
+    int64:length;
+    wild GreenNode->:data;
+    wild int32->:generations; // Tracks generation for each index to prevent use-after-free
+};
+
+extern "nitpick_nparse_sys" {
+    /// Creates a new GreenArena with the specified initial capacity
+    func:npk_arena_create = wild GreenArena->(int64:initial_capacity);
+    
+    /// Destroys the arena and frees all underlying memory
+    func:npk_arena_destroy = void(wild GreenArena->:arena);
+    
+    /// Pushes a GreenNode into the arena and returns its generational Handle
+    func:npk_arena_push = Handle<GreenNode>(wild GreenArena->:arena, wild GreenNode->:node);
+    
+    /// Retrieves a pointer to a GreenNode by its handle.
+    /// Returns 0i64 (null) if the handle generation does not match (use-after-free protection).
+    func:npk_arena_get = wild GreenNode->(wild GreenArena->:arena, Handle<GreenNode>:handle);
+}

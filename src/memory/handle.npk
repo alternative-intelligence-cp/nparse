@@ -1,0 +1,14 @@
+mod nparse.memory.handle;
+
+/// A generational handle used to safely reference arena-allocated objects.
+/// We use a 32-bit index and a 32-bit generation counter to keep the handle
+/// strictly 8-bytes in size. This ensures the GreenNode stays exactly 32-bytes
+/// even with two inlined handles for Small Vector Optimization (SVO).
+pub struct:Handle<Type:T> = {
+    int32:index;
+    int32:generation;
+};
+
+pub func:is_null<Type:T> = bool(Handle<T>:h) {
+    return h.index == 0i32 && h.generation == 0i32;
+};
