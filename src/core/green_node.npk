@@ -12,9 +12,8 @@ pub struct:GreenNode = {
     int16:flags;              // Bitmask: 0x1 = contains_error, 0x2 = is_missing
     int32:padding;            // Padding to align to 32 bytes
     
-    // Small Vector Optimization (SVO)
-    // For child_count <= 2, these hold the children handles directly.
-    // For child_count > 2, child0 is used as a handle to an array of children.
-    CompactHandle<GreenNode>:child0; // 8 bytes
-    CompactHandle<GreenNode>:child1; // 8 bytes
+    // Left-Child Right-Sibling (LCRS) Tree Structure
+    // Eliminates the need for array allocation and SVO type confusion
+    CompactHandle<GreenNode>:first_child; // 8 bytes
+    CompactHandle<GreenNode>:next_sibling; // 8 bytes
 };

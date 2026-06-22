@@ -13,34 +13,55 @@ pub struct:GreenArena = {
 };
 
     /// Creates a new GreenArena and returns an opaque 64-bit pointer.
-    pub func:npk_arena_create = int64(int64:initial_capacity) {
-        // Use native alloc to grab capacity * 32 bytes (size of GreenNode)
-        int64:bytes = initial_capacity * 32i64;
-        wild int8->:ptr = alloc(bytes);
-        // We cast the pointer to int64 to act as the opaque Handle arena base
-        pass(ptr => int64);
+    pub func:npk_arena_create = wild GreenArena->(int64:initial_capacity) {
+        wild GreenArena->:arena = alloc(32i64) => wild GreenArena->;
+        arena->capacity = initial_capacity;
+        arena->length = 0i64;
+        arena->data = alloc(initial_capacity * 32i64) => wild GreenNode->;
+        arena->generations = alloc(initial_capacity * 4i64) => wild int32->;
+        pass(arena);
     };
     
     /// Destroys the GreenArena and frees all memory back to the OS.
-    pub func:npk_arena_destroy = NIL(int64:arena_ptr) {
-        if arena_ptr != 0i64 {
-            wild int8->:ptr = arena_ptr => wild int8->;
-            dalloc(ptr);
+    pub func:npk_arena_destroy = NIL(wild GreenArena->:arena) {
+        if arena != NULL {
+            dalloc(arena->data => wild int8->);
+            dalloc(arena->generations => wild int8->);
+            dalloc(arena => wild int8->);
         }
         pass(NIL);
     };
     
     /// Pushes a new node into the arena and returns its generational Handle.
-    pub func:npk_arena_push = CompactHandle<T>(int64:arena_ptr, wild any->:node_ptr) {
-        // Implementation stub for tracking generation index
-        // In a full implementation, we would maintain an offset counter,
-        // use mmov() to copy the node data into the arena, and return the Handle.
-        pass(CompactHandle<T>{ index: 0u32, generation: 1u32 });
+    pub func:npk_arena_push = CompactHandle<GreenNode>(wild GreenArena->:arena, wild GreenNode->:node_ptr) {
+        if arena->length >= arena->capacity {
+            pass(CompactHandle<GreenNode>{ index: 0u32, generation: 0u32 });
+        }
+        int64:idx = arena->length;
+        arena->length = arena->length + 1i64;
+        
+        wild GreenNode->:dst = arena->data + idx;
+        mmov(dst => wild int8->, node_ptr => wild int8->, 32i64);
+        
+        int32:gen = arena->generations[idx];
+        if gen == 0i32 {
+            gen = 1i32;
+        } else {
+            gen = gen + 1i32;
+        }
+        arena->generations[idx] = gen;
+        
+        pass(CompactHandle<GreenNode>{ index: (idx => uint32), generation: (gen => uint32) });
     };
     
     /// Retrieves a pointer to the GreenNode associated with the given Handle.
-    pub func:npk_arena_get = wild any->(int64:arena_ptr, CompactHandle<T>:handle) {
-        // Implementation stub
-        // ptr = arena_ptr + (handle.index * 32);
-        pass(NULL);
+    pub func:npk_arena_get = wild GreenNode->(wild GreenArena->:arena, CompactHandle<GreenNode>:handle) {
+        int64:idx = handle.index => int64;
+        if idx >= arena->length {
+            pass(NULL);
+        }
+        if arena->generations[idx] != (handle.generation => int32) {
+            pass(NULL);
+        }
+        pass(arena->data + idx);
     };

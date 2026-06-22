@@ -2,22 +2,51 @@ mod nparse.memory.tlc;
 
 use nparse.core.red_node.RedNode;
 
+pub struct:ThreadLocalCache = {
+    wild int8->:buffer;
+    int64:cursor;
+    int64:capacity;
+};
+
+    pub func:npk_tlc_create = wild ThreadLocalCache->() {
+        int64:cap = 4096i64; // 4KB pre-allocated buffer
+        wild int8->:buf = alloc(cap);
+        wild ThreadLocalCache->:tlc = alloc(24i64) => wild ThreadLocalCache->;
+        tlc->buffer = buf;
+        tlc->cursor = 0i64;
+        tlc->capacity = cap;
+        pass(tlc);
+    };
+    
+    pub func:npk_tlc_destroy = NIL(wild ThreadLocalCache->:tlc) {
+        if tlc != NULL {
+            dalloc(tlc->buffer);
+            dalloc(tlc => wild int8->);
+        }
+        pass(NIL);
+    };
+
     /// Allocates an arbitrary chunk of memory in the TLC ring buffer.
-    pub func:npk_tlc_alloc = wild any->(int64:size) {
-        // Native TLC allocation using alloc
-        pass(alloc(size) => wild any->);
+    pub func:npk_tlc_alloc = wild any->(wild ThreadLocalCache->:tlc, int64:size) {
+        if tlc->cursor + size > tlc->capacity {
+            pass(NULL);
+        }
+        wild int8->:ptr = tlc->buffer + tlc->cursor;
+        tlc->cursor = tlc->cursor + size;
+        pass(ptr => wild any->);
     };
     
     /// Convenience function that allocates exactly 32 bytes (size of a RedNode) in the TLC.
-    pub func:npk_tlc_alloc_red_node = wild any->() {
-        pass(alloc(32i64) => wild any->);
+    pub func:npk_tlc_alloc_red_node = wild any->(wild ThreadLocalCache->:tlc) {
+        pass(npk_tlc_alloc(tlc, 32i64));
     };
     
     /// Flushes the TLC, destroying all ephemeral RedNodes that were allocated
     /// during the current semantic pass. Must be called explicitly unless wrapped
     /// in the RAII Context manager.
-    pub func:npk_tlc_flush = NIL() {
-        // In a true ring buffer implementation, this just resets the offset counter.
-        // For now, it's a no-op as memory is reclaimed per scope.
+    pub func:npk_tlc_flush = NIL(wild ThreadLocalCache->:tlc) {
+        if tlc != NULL {
+            tlc->cursor = 0i64;
+        }
         pass(NIL);
     };
