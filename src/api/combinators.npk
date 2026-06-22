@@ -15,4 +15,18 @@ extern "nitpick_nparse_sys" {
     
     /// Matches zero or exactly one occurrence of a designated child rule.
     func:npk_rule_optional = int32(int64:g, int32:rule_id);
+    
+    // ==========================================
+    // Top-Down Operator Precedence (Pratt Parser)
+    // ==========================================
+    
+    /// Defines an infix operator rule with a specific binding power (precedence).
+    /// is_right_assoc should be 1 for right-associative (e.g. exponentiation) and 0 for left-associative.
+    func:npk_rule_infix  = int32(int64:g, int32:token_kind, int32:precedence, int8:is_right_assoc);
+    
+    /// Defines a prefix operator rule with a specific binding power.
+    func:npk_rule_prefix = int32(int64:g, int32:token_kind, int32:precedence);
+    
+    /// Synthesizes a unified Pratt Expression parser rule using arrays of defined prefix and infix rules.
+    func:npk_rule_pratt_expr = int32(int64:g, int64:prefix_rules_ptr, int32:pref_count, int64:infix_rules_ptr, int32:inf_count);
 }
