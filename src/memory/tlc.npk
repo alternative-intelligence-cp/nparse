@@ -43,6 +43,7 @@ pub struct:ThreadLocalCache = {
 
     /// Allocates an arbitrary chunk of memory in the TLC ring buffer.
     pub func:npk_tlc_alloc = ?->(wild ThreadLocalCache->:tlc, int64:size) {
+        if (size > 1073741824i64) { fail(1i32); }
         int64:aligned_size = (size + 7i64) & (~7i64);
         if (aligned_size > tlc->chunk_capacity - tlc->cursor) {
             // Need a new chunk
@@ -62,7 +63,7 @@ pub struct:ThreadLocalCache = {
                 tlc->cursor = 0i64;
             }
         }
-        wild int8->:ptr = @cast_unchecked<int8->>( @cast_unchecked<int64>(((<-(tlc->tail)).buf)) + tlc->cursor );
+        wild int8->:ptr = @cast_unchecked<int8->>( @cast_unchecked<int64>((<-(tlc->tail)).buf) + tlc->cursor );
         tlc->cursor = tlc->cursor + aligned_size;
         pass(@cast_unchecked<?->>(ptr));
     };
