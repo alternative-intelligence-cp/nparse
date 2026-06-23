@@ -60,7 +60,10 @@ Rules<uint32>:r_valid_depth = { $ > 0u32 && $ <= 4096u32 };
         while (true) {
             int64:k = <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(keys) + (idx * 8i64)));
             if (k == 0i64) {
-                fail(ERR_CACHE_MISS);
+                CompactHandle<GreenNode>:h;
+                h.index = 0u32;
+                h.generation = 0u32;
+                pass(h);
             }
             if (k == key) {
                 int64:packed = <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(values) + (idx * 8i64)));
@@ -73,44 +76,48 @@ Rules<uint32>:r_valid_depth = { $ > 0u32 && $ <= 4096u32 };
             }
             idx = (idx + 1i64) & mask;
             if (idx == start_idx) {
-                fail(ERR_CACHE_MISS);
+                CompactHandle<GreenNode>:h2;
+                h2.index = 0u32;
+                h2.generation = 0u32;
+                pass(h2);
             }
         }
-        fail(ERR_CACHE_MISS);
+        CompactHandle<GreenNode>:h3;
+        h3.index = 0u32;
+        h3.generation = 0u32;
+        pass(h3);
     };
 
     pub func:npk_memoize_set = NIL(int64:cache_ptr, int32:rule_id, int64:byte_offset, CompactHandle<GreenNode>:res) {
         int64:key = (@cast_unchecked<int64>(byte_offset) << 32i64) | @cast_unchecked<int64>(rule_id + 1i32);
         if (key == 0i64) { pass(NIL); } // Key 0 is reserved for empty slots
         
-        if (res.index != 0u32 || res.generation != 0u32) {
-            int64:packed = @cast_unchecked<int64>(res.index) | (@cast_unchecked<int64>(res.generation) << 32i64);
-            
-            wild int64->:cache = @cast_unchecked<int64->>(cache_ptr);
-            int64:capacity = <-cache;
-            int64:mask = capacity - 1i64;
-            wild int64->:keys = @cast_unchecked<int64->>(cache_ptr + 8i64);
-            wild int64->:values = @cast_unchecked<int64->>(cache_ptr + 8i64 + (capacity * 8i64));
+        int64:packed = @cast_unchecked<int64>(res.index) | (@cast_unchecked<int64>(res.generation) << 32i64);
+        
+        wild int64->:cache = @cast_unchecked<int64->>(cache_ptr);
+        int64:capacity = <-cache;
+        int64:mask = capacity - 1i64;
+        wild int64->:keys = @cast_unchecked<int64->>(cache_ptr + 8i64);
+        wild int64->:values = @cast_unchecked<int64->>(cache_ptr + 8i64 + (capacity * 8i64));
 
-            uint64:uhash = @cast_unchecked<uint64>(key) ^ (@cast_unchecked<uint64>(key) >> 33u64);
-            uhash = uhash * 7109453100751455733u64;
-            uhash = uhash ^ (uhash >> 33u64);
-            
-            int64:idx = @cast_unchecked<int64>(uhash) & mask;
-            int64:start_idx = idx;
+        uint64:uhash = @cast_unchecked<uint64>(key) ^ (@cast_unchecked<uint64>(key) >> 33u64);
+        uhash = uhash * 7109453100751455733u64;
+        uhash = uhash ^ (uhash >> 33u64);
+        
+        int64:idx = @cast_unchecked<int64>(uhash) & mask;
+        int64:start_idx = idx;
 
-            while (true) {
-                wild int64->:k_ptr = @cast_unchecked<int64->>(@cast_unchecked<int64>(keys) + (idx * 8i64));
-                int64:k = <-k_ptr;
-                if (k == 0i64 || k == key) {
-                    <-k_ptr = key;
-                    <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(values) + (idx * 8i64))) = packed;
-                    pass(NIL);
-                }
-                idx = (idx + 1i64) & mask;
-                if (idx == start_idx) {
-                    pass(NIL); // Cache full, drop it
-                }
+        while (true) {
+            wild int64->:k_ptr = @cast_unchecked<int64->>(@cast_unchecked<int64>(keys) + (idx * 8i64));
+            int64:k = <-k_ptr;
+            if (k == 0i64 || k == key) {
+                <-k_ptr = key;
+                <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(values) + (idx * 8i64))) = packed;
+                pass(NIL);
+            }
+            idx = (idx + 1i64) & mask;
+            if (idx == start_idx) {
+                pass(NIL); // Cache full, drop it
             }
         }
         pass(NIL);

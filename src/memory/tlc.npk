@@ -63,7 +63,8 @@ pub struct:ThreadLocalCache = {
                 tlc->cursor = 0i64;
             }
         }
-        wild int8->:ptr = @cast_unchecked<int8->>( @cast_unchecked<int64>((<-(tlc->tail)).buf) + tlc->cursor );
+        wild TlcChunk->:tail_chunk = tlc->tail;
+        wild int8->:ptr = @cast_unchecked<int8->>( @cast_unchecked<int64>(tail_chunk->buf) + tlc->cursor );
         tlc->cursor = tlc->cursor + aligned_size;
         pass(@cast_unchecked<?->>(ptr));
     };
