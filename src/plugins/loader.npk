@@ -1,12 +1,16 @@
 
 
+extern "libc" {
+    func:dlopen = int64(string:filename, int32:flags);
+}
+
     /// Loads an external dynamic library (.so on Linux, .dll on Windows).
     /// The plugin must export a standard `npk_plugin_init` symbol.
     /// Returns a 64-bit handle to the loaded module, or 0 if failed.
-    pub func:npk_plugin_load = int64(wild int8->:path_cstr) { pass(0i64); };
+    pub func:npk_plugin_load = int64(string:path) { pass(0i64); };
     
     /// Unloads a previously loaded plugin.
     pub func:npk_plugin_unload = NIL(int64:plugin_handle) { pass(NIL); };
     
     /// Retrieves a function pointer to an exported symbol within the loaded plugin.
-    pub func:npk_plugin_get_symbol = int64(int64:plugin_handle, wild int8->:symbol_name_cstr) { pass(0i64); };
+    pub func:npk_plugin_get_symbol = int64(int64:plugin_handle, string:symbol_name) { pass(0i64); };

@@ -1,35 +1,105 @@
-
-
-use nparse.core.green_node.GreenNode;
-use nparse.memory.handle.CompactHandle;
+use "core/green_node.npk".GreenNode;
+use "memory/handle.npk".CompactHandle;
 
 /// FNV-1a hash algorithm constants
-const uint32:FNV_PRIME = 16777619u32;
-const uint32:FNV_OFFSET_BASIS = 2166136261u32;
+fixed uint32:FNV_PRIME = 16777619u32;
+fixed uint32:FNV_OFFSET_BASIS = 2166136261u32;
+
+/// Helper function to mix a 32-bit value byte-by-byte into the FNV-1a hash.
+pub func:npk_fnv1a_mix = uint32(uint32:h, uint32:val) {
+    uint32:b0 = val & 0xFFu32;
+    uint32:b1 = (val >> 8u32) & 0xFFu32;
+    uint32:b2 = (val >> 16u32) & 0xFFu32;
+    uint32:b3 = (val >> 24u32) & 0xFFu32;
+    
+    uint32:cur = h;
+    cur = cur ^ b0;
+    cur = @cast_unchecked<uint32>((@cast_unchecked<uint64>(cur) * @cast_unchecked<uint64>(FNV_PRIME)) & 0xFFFFFFFFu64);
+    cur = cur ^ b1;
+    cur = @cast_unchecked<uint32>((@cast_unchecked<uint64>(cur) * @cast_unchecked<uint64>(FNV_PRIME)) & 0xFFFFFFFFu64);
+    cur = cur ^ b2;
+    cur = @cast_unchecked<uint32>((@cast_unchecked<uint64>(cur) * @cast_unchecked<uint64>(FNV_PRIME)) & 0xFFFFFFFFu64);
+    cur = cur ^ b3;
+    cur = @cast_unchecked<uint32>((@cast_unchecked<uint64>(cur) * @cast_unchecked<uint64>(FNV_PRIME)) & 0xFFFFFFFFu64);
+    pass(cur);
+};
 
 /// Computes the FNV-1a hash of a GreenNode's core structural properties.
 /// Hashes: kind (4 bytes), width (4 bytes), child0 (8 bytes), child1 (8 bytes)
 pub func:hash_green_node = uint32(wild GreenNode->:node) {
     uint32:hash = FNV_OFFSET_BASIS;
     
-    // Mix kind
-    hash = hash ^ (node->kind => uint32);
+    // Helper to mix a 32-bit integer byte-by-byte
+    uint32:v_kind = @cast_unchecked<uint32>((<-node).kind);
+    hash = hash ^ (v_kind & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    hash = hash ^ ((v_kind >> 8u32) & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    hash = hash ^ ((v_kind >> 16u32) & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    hash = hash ^ ((v_kind >> 24u32) & 255u32);
     hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
     
-    // Mix width (cast to uint32 for hashing)
-    hash = hash ^ (node->width => uint32);
+    uint32:v_width = @cast_unchecked<uint32>((<-node).width);
+    hash = hash ^ (v_width & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    hash = hash ^ ((v_width >> 8u32) & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    hash = hash ^ ((v_width >> 16u32) & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    hash = hash ^ ((v_width >> 24u32) & 255u32);
     hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
     
-    // Mix first_child (index then generation)
-    hash = hash ^ node->first_child.index;
+    uint32:v_cc = @cast_unchecked<uint32>((<-node).child_count);
+    hash = hash ^ (v_cc & 255u32);
     hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
-    hash = hash ^ node->first_child.generation;
+    hash = hash ^ ((v_cc >> 8u32) & 255u32);
     hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
     
-    // Mix next_sibling (index then generation)
-    hash = hash ^ node->next_sibling.index;
+    uint32:v_flags = @cast_unchecked<uint32>((<-node).flags);
+    hash = hash ^ (v_flags & 255u32);
     hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
-    hash = hash ^ node->next_sibling.generation;
+    hash = hash ^ ((v_flags >> 8u32) & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    
+    uint32:v_fc_idx = (<-node).first_child.index;
+    hash = hash ^ (v_fc_idx & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    hash = hash ^ ((v_fc_idx >> 8u32) & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    hash = hash ^ ((v_fc_idx >> 16u32) & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    hash = hash ^ ((v_fc_idx >> 24u32) & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    
+    uint32:v_fc_gen = (<-node).first_child.generation;
+    hash = hash ^ (v_fc_gen & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    hash = hash ^ ((v_fc_gen >> 8u32) & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    hash = hash ^ ((v_fc_gen >> 16u32) & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    hash = hash ^ ((v_fc_gen >> 24u32) & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    
+    uint32:v_ns_idx = (<-node).next_sibling.index;
+    hash = hash ^ (v_ns_idx & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    hash = hash ^ ((v_ns_idx >> 8u32) & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    hash = hash ^ ((v_ns_idx >> 16u32) & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    hash = hash ^ ((v_ns_idx >> 24u32) & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    
+    uint32:v_ns_gen = (<-node).next_sibling.generation;
+    hash = hash ^ (v_ns_gen & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    hash = hash ^ ((v_ns_gen >> 8u32) & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    hash = hash ^ ((v_ns_gen >> 16u32) & 255u32);
+    hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
+    hash = hash ^ ((v_ns_gen >> 24u32) & 255u32);
     hash = (((hash => uint64) * (FNV_PRIME => uint64)) & 0xFFFFFFFFu64) => uint32;
     
     pass(hash);
@@ -39,7 +109,7 @@ pub func:hash_green_node = uint32(wild GreenNode->:node) {
     /// Otherwise, pushes the new node to the arena, caches it, and returns the new handle.
     pub func:npk_hash_cons_push = CompactHandle<GreenNode>(
         int64:hash_map_ptr,
-        wild nparse.memory.arena.GreenArena->:arena, 
+        wild nparse.memory.arena.GreenArena->:arena,
         wild GreenNode->:node
     ) {
         pass(CompactHandle<GreenNode>{ index: 0u32, generation: 0u32 });

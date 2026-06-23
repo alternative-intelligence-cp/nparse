@@ -1,6 +1,6 @@
 
 
-use nparse.memory.handle.CompactHandle;
+use "memory/handle.npk".CompactHandle;
 
 /// The immutable, structural, bottom-up tree node.
 /// Packed to exactly 32 bytes for optimal CPU cache utilization.

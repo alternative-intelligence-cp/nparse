@@ -5,10 +5,10 @@
     pub func:npk_rule_token    = int32(int64:g, int32:token_kind) { pass(0i32); };
     
     /// Synthesizes a sequential rule (A then B then C) from a tightly packed array of child rule IDs.
-    pub func:npk_rule_seq      = int32(int64:g, int64:rule_ids_ptr, int32:count) { pass(0i32); };
+    pub func:npk_rule_seq      = int32(int64:g, wild int32->:rule_ids, int32:count) { pass(0i32); };
     
     /// Synthesizes an alternation (A OR B) rule from an array of child rule IDs.
-    pub func:npk_rule_choice   = int32(int64:g, int64:rule_ids_ptr, int32:count) { pass(0i32); };
+    pub func:npk_rule_choice   = int32(int64:g, wild int32->:rule_ids, int32:count) { pass(0i32); };
     
     /// Matches one or more sequential occurrences of a designated child rule.
     pub func:npk_rule_repeat   = int32(int64:g, int32:rule_id, int32:min_matches) { pass(0i32); };
@@ -28,4 +28,4 @@
     pub func:npk_rule_prefix = int32(int64:g, int32:token_kind, int32:precedence) { pass(0i32); };
     
     /// Synthesizes a unified Pratt Expression parser rule using arrays of defined prefix and infix rules.
-    pub func:npk_rule_pratt_expr = int32(int64:g, int64:prefix_rules_ptr, int32:pref_count, int64:infix_rules_ptr, int32:inf_count) { pass(0i32); };
+    pub func:npk_rule_pratt_expr = int32(int64:g, wild int32->:prefix_rules, int32:pref_count, wild int32->:infix_rules, int32:inf_count) { pass(0i32); };

@@ -1,41 +1,105 @@
-
-
-use nparse.core.green_node.GreenNode;
-use nparse.memory.handle.CompactHandle;
-use nparse.lexer.dfa_lexer.StrView;
+use "core/green_node.npk".GreenNode;
+use "memory/handle.npk".CompactHandle;
+use "lexer/dfa_lexer.npk".StrView;
 
 // Security Mandate Error Codes
-const int32:ERR_PARSE_DEPTH_EXCEEDED = -1i32;
-const int32:ERR_ZERO_WIDTH_LOOP      = -2i32;
+fixed int32:ERR_PARSE_DEPTH_EXCEEDED = 101i32;
+fixed int32:ERR_ZERO_WIDTH_LOOP      = 102i32;
+fixed int32:ERR_CACHE_MISS           = 103i32;
+
+Rules<uint32>:r_valid_depth = { $ > 0u32 && $ <= 4096u32 };
 
     /// Core execution entrypoint. Matches the grammar against the source.
     /// Strictly limits recursion via max_recursion_depth to prevent call-stack exhaustion attacks.
     pub func:npk_parse = Result<CompactHandle<GreenNode>>(int64:grammar, StrView:source, uint32:max_recursion_depth) {
-        if (max_recursion_depth == 0u32) {
+        if (max_recursion_depth > 4096u32) {
             fail(ERR_PARSE_DEPTH_EXCEEDED);
         }
+        astack(4096i64); // Zero-allocation LIFO scratchpad
+
         // Native Nitpick parser loop implementation stub
-        // Recursively evaluates rules up to max_recursion_depth
+        // Evaluates rules using apush() and apop() instead of recursion
         pass(CompactHandle<GreenNode>{ index: 0u32, generation: 0u32 }); // Return Success
     };
-    
-    /// Packrat Memoization Cache: Fast path lookup using ahash.
+
+    /// Packrat Memoization Cache: Fast path lookup using open-addressed flat array.
     pub func:npk_memoize_get = Result<CompactHandle<GreenNode>>(int64:cache_ptr, int32:rule_id, int64:byte_offset) {
-        // Compute hash key using Nitpick's built-in ahash()
-        // int64:hash_key = ahash(data_ptr, length);
-        fail(-3i32); // 2 = Unknown/Miss
+        int64:key = (@cast_unchecked<int64>(byte_offset) << 32i64) | @cast_unchecked<int64>(rule_id);
+        
+        wild int64->:cache = @cast_unchecked<int64->>(cache_ptr);
+        int64:capacity = <-cache; // First element is capacity
+        int64:mask = capacity - 1i64;
+        wild int64->:keys = @cast_unchecked<int64->>(cache_ptr + 8i64); // keys array
+        wild int64->:values = @cast_unchecked<int64->>(cache_ptr + 8i64 + (capacity * 8i64)); // values array
+
+        // FNV-1a simple mix for the hash
+        int64:hash = key ^ (key >> 33i64);
+        hash = hash * 7109453100751455733i64;
+        hash = hash ^ (hash >> 33i64);
+        
+        int64:idx = hash & mask;
+        int64:start_idx = idx;
+
+        while (true) {
+            int64:k = <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(keys) + (idx * 8i64)));
+            if (k == 0i64) {
+                fail(ERR_CACHE_MISS);
+            }
+            if (k == key) {
+                int64:packed = <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(values) + (idx * 8i64)));
+                uint32:h_idx = @cast_unchecked<uint32>(packed & 0xFFFFFFFFi64);
+                uint32:gen = @cast_unchecked<uint32>((packed >> 32i64) & 0xFFFFFFFFi64);
+                pass(CompactHandle<GreenNode>{ index: h_idx, generation: gen });
+            }
+            idx = (idx + 1i64) & mask;
+            if (idx == start_idx) {
+                fail(ERR_CACHE_MISS);
+            }
+        }
+        fail(ERR_CACHE_MISS);
     };
-    
+
     pub func:npk_memoize_set = NIL(int64:cache_ptr, int32:rule_id, int64:byte_offset, Result<CompactHandle<GreenNode>>:res) {
-        // Native Packrat write stub utilizing ahash()
+        int64:key = (@cast_unchecked<int64>(byte_offset) << 32i64) | @cast_unchecked<int64>(rule_id);
+        if (key == 0i64) { pass(NIL); } // Key 0 is reserved for empty slots
+        
+        if (!res.is_error) {
+            int64:packed = @cast_unchecked<int64>(res.value.index) | (@cast_unchecked<int64>(res.value.generation) << 32i64);
+            
+            wild int64->:cache = @cast_unchecked<int64->>(cache_ptr);
+            int64:capacity = <-cache;
+            int64:mask = capacity - 1i64;
+            wild int64->:keys = @cast_unchecked<int64->>(cache_ptr + 8i64);
+            wild int64->:values = @cast_unchecked<int64->>(cache_ptr + 8i64 + (capacity * 8i64));
+
+            int64:hash = key ^ (key >> 33i64);
+            hash = hash * 7109453100751455733i64;
+            hash = hash ^ (hash >> 33i64);
+            
+            int64:idx = hash & mask;
+            int64:start_idx = idx;
+
+            while (true) {
+                wild int64->:k_ptr = @cast_unchecked<int64->>(@cast_unchecked<int64>(keys) + (idx * 8i64));
+                int64:k = <-k_ptr;
+                if (k == 0i64 || k == key) {
+                    <-k_ptr = key;
+                    <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(values) + (idx * 8i64))) = packed;
+                    pass(NIL);
+                }
+                idx = (idx + 1i64) & mask;
+                if (idx == start_idx) {
+                    pass(NIL); // Cache full, drop it
+                }
+            }
+        }
         pass(NIL);
     };
-    
+
     /// Zero-Width Loop Defense: Assert progress within `repeat` combinators.
-    /// Evaluates `prove(cursor_after > cursor_before)`. If false, aborts the loop to prevent infinite hangs.
-    pub func:npk_prove_progress = bool(int64:cursor_before, int64:cursor_after) {
+    pub func:npk_prove_progress = NIL(int64:cursor_before, int64:cursor_after) {
         if (cursor_after <= cursor_before) {
-            pass(false);
+            fail(ERR_ZERO_WIDTH_LOOP);
         }
-        pass(true);
+        pass(NIL);
     };

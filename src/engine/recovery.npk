@@ -1,7 +1,7 @@
 
 
-use nparse.core.green_node.GreenNode;
-use nparse.memory.handle.Handle;
+use "core/green_node.npk".GreenNode;
+use "memory/handle.npk".CompactHandle;
 
 
 /// Pre-defined standard node kind for error representation.

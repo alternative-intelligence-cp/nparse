@@ -1,55 +1,90 @@
+use "core/red_node.npk".RedNode;
 
-
-use nparse.core.red_node.RedNode;
+pub struct:TlcChunk = {
+    wild int8->:buf;
+    wild TlcChunk->:next;
+};
 
 pub struct:ThreadLocalCache = {
-    int8->:buffer;
+    wild TlcChunk->:head;
+    wild TlcChunk->:tail;
     int64:cursor;
-    int64:capacity;
+    int64:chunk_capacity;
 };
 
     pub func:npk_tlc_create = wild ThreadLocalCache->() {
-        int64:cap = 4096i64; // 4KB pre-allocated buffer
-        wild int8->:buf = alloc(cap);
-        wild ThreadLocalCache->:tlc = alloc(24i64) => wild ThreadLocalCache->;
-        tlc->buffer = buf;
-        tlc->cursor = 0i64;
-        tlc->capacity = cap;
+        int64:cap = 4096i64; // 4KB chunks
+        wild TlcChunk->:first = @cast_unchecked<TlcChunk->>(alloc(16i64));
+        (<-first).buf = @cast_unchecked<int8->>(alloc(cap));
+        (<-first).next = NULL;
+
+        wild ThreadLocalCache->:tlc = @cast_unchecked<ThreadLocalCache->>(alloc(32i64));
+        (<-tlc).head = first;
+        (<-tlc).tail = first;
+        (<-tlc).cursor = 0i64;
+        (<-tlc).chunk_capacity = cap;
         pass(tlc);
     };
-    
+
+    /// Destroys the ThreadLocalCache and frees memory.
     pub func:npk_tlc_destroy = NIL(wild ThreadLocalCache->:tlc) {
         if (tlc != NULL) {
-            dalloc(tlc->buffer);
-            dalloc(tlc => wild int8->);
+            wild TlcChunk->:curr = (<-tlc).head;
+            while (curr != NULL) {
+                wild TlcChunk->:next = (<-curr).next;
+                dalloc((<-curr).buf);
+                dalloc(@cast_unchecked<int8->>(curr));
+                curr = next;
+            }
+            dalloc(@cast_unchecked<int8->>(tlc));
         }
         pass(NIL);
     };
 
     /// Allocates an arbitrary chunk of memory in the TLC ring buffer.
-    pub func:npk_tlc_alloc = wild any->(wild ThreadLocalCache->:tlc, int64:size) {
-        if (tlc->cursor + size > tlc->capacity) {
-            int64:new_cap = tlc->capacity * 2i64;
-            if (new_cap < tlc->cursor + size) { new_cap = tlc->cursor + size + 4096i64; }
-            tlc->buffer = ralloc(tlc->buffer => wild any->, new_cap) => int8->;
-            tlc->capacity = new_cap;
+    pub func:npk_tlc_alloc = ?->(wild ThreadLocalCache->:tlc, int64:size) {
+        if ((<-tlc).cursor + size > (<-tlc).chunk_capacity) {
+            // Need a new chunk
+            int64:cap = (<-tlc).chunk_capacity;
+            if (size > cap) { cap = size; } // Handle large allocations if necessary
+            wild TlcChunk->:new_chunk = @cast_unchecked<TlcChunk->>(alloc(16i64));
+            (<-new_chunk).buf = @cast_unchecked<int8->>(alloc(cap));
+            (<-new_chunk).next = NULL;
+
+            (<-((<-tlc).tail)).next = new_chunk;
+            (<-tlc).tail = new_chunk;
+            (<-tlc).cursor = 0i64;
+            (<-tlc).chunk_capacity = cap;
         }
-        wild int8->:ptr = tlc->buffer + tlc->cursor;
-        tlc->cursor = tlc->cursor + size;
-        pass(ptr => wild any->);
+        wild int8->:ptr = @cast_unchecked<int8->>( @cast_unchecked<int64>(((<-((<-tlc).tail)).buf)) + (<-tlc).cursor );
+        (<-tlc).cursor = (<-tlc).cursor + size;
+        pass(@cast_unchecked<?->>(ptr));
     };
-    
+
     /// Convenience function that allocates exactly 32 bytes (size of a RedNode) in the TLC.
-    pub func:npk_tlc_alloc_red_node = wild any->(wild ThreadLocalCache->:tlc) {
+    pub func:npk_tlc_alloc_red_node = ?->(wild ThreadLocalCache->:tlc) {
         pass(npk_tlc_alloc(tlc, 32i64));
     };
-    
+
     /// Flushes the TLC, destroying all ephemeral RedNodes that were allocated
-    /// during the current semantic pass. Must be called explicitly unless wrapped
-    /// in the RAII Context manager.
+    /// during the current semantic pass.
     pub func:npk_tlc_flush = NIL(wild ThreadLocalCache->:tlc) {
         if (tlc != NULL) {
-            tlc->cursor = 0i64;
+            // Keep only the first chunk to prevent thrashing
+            wild TlcChunk->:head = (<-tlc).head;
+            if (head != NULL) {
+                wild TlcChunk->:curr = (<-head).next;
+                while (curr != NULL) {
+                    wild TlcChunk->:next = (<-curr).next;
+                    dalloc((<-curr).buf);
+                    dalloc(@cast_unchecked<int8->>(curr));
+                    curr = next;
+                }
+                (<-head).next = NULL;
+                (<-tlc).tail = head;
+                (<-tlc).cursor = 0i64;
+                (<-tlc).chunk_capacity = 4096i64;
+            }
         }
         pass(NIL);
     };

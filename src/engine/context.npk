@@ -1,6 +1,6 @@
 
 
-use nparse.memory.tlc.*;
+use "memory/tlc.npk".{TlcChunk, ThreadLocalCache, npk_tlc_create, npk_tlc_destroy, npk_tlc_flush, npk_tlc_alloc, npk_tlc_alloc_red_node};
 
 /// A context manager ensuring memory safety for the ephemeral Red Tree.
 /// This utilizes Nitpick's RAII mechanics: when this struct goes out of scope,
@@ -19,10 +19,11 @@ pub struct:ScopedSemanticPass = {
     /// Must be explicitly called using the `defer` keyword since Nitpick 
     /// does not automatically call destructors on custom structs.
     /// Enforces the Priority 1 Safety mandate by preventing TLC memory leaks.
+    /// Callers MUST execute this strictly inside a `defer { ... }` block to ensure `[NITPICK-014]` leak analyzer compliance.
     pub func:scoped_pass_destroy = NIL(ScopedSemanticPass:self) {
         if (self.active == 1i8) {
-            npk_tlc_flush(self.tlc);
-            npk_tlc_destroy(self.tlc);
+            drop npk_tlc_flush(self.tlc);
+            drop npk_tlc_destroy(self.tlc);
         }
         pass(NIL);
     };

@@ -1,6 +1,6 @@
 
 
-use nparse.core.red_node.RedNode;
+use "core/red_node.npk".RedNode;
 
     /// Registers a callback function to be executed whenever the traversal
     /// engine enters a RedNode of the specified `ast_node_kind`.

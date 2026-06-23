@@ -1,12 +1,12 @@
 
 
-use nparse.memory.handle.Handle;
-use nparse.core.green_node.GreenNode;
+
+use "core/green_node.npk".GreenNode;
 
 /// The ephemeral, top-down facade node representing an absolute position.
 /// RedNodes must only be allocated via the Thread-Local Cache (TLC) and never outlive the traversal pass.
 pub struct:RedNode = {
-    Handle<GreenNode>:green;   // Handle to the underlying structural data
+    CompactHandle<GreenNode>:green;   // Handle to the underlying structural data
     
     // Pointers are safe here because RedNodes are transient and flushed after use.
     RedNode->:parent;          // Pointer to the parent RedNode
