@@ -11,10 +11,14 @@ pub struct:StrView = {
 pub struct:Lexer = {
     StrView:source;
     int64:cursor;       // Current absolute byte offset
+    wild int32->:dfa_table;
+    int32:table_length;
 };
 
     /// Initializes the lexer state with the given source view.
-    pub func:npk_lexer_init = Lexer(StrView:source) { pass(Lexer{source: source, cursor: 0i64}); };
+    pub func:npk_lexer_init = Lexer(StrView:source, wild int32->:table, int32:table_length) { 
+        pass(Lexer{source: source, cursor: 0i64, dfa_table: table, table_length: table_length}); 
+    };
     
     /// Executes one state transition in the DFA based on the current byte.
     /// Returns the new state ID, or -1 if the state is invalid/rejecting.
@@ -45,10 +49,41 @@ pub struct:Lexer = {
     /// Extracts the next lexical Token from the source stream.
     pub func:npk_lexer_next_token = Token(wild Lexer->:lexer) {
         int64:start = lexer->cursor;
+        int32:current_state = 0i32; // Assuming 0 is initial state
+        int32:last_accepting_state = -1i32;
+        int64:last_accepting_cursor = start;
+
         while (lexer->cursor < lexer->source.length) {
             int8:b = <-(@cast_unchecked<int8->>(@cast_unchecked<int64>(lexer->source.data) + lexer->cursor));
-            // DFA transition stub
-            break;
+            
+            // DFA transition
+            int32:next_state = raw npk_lexer_transition(lexer->dfa_table, lexer->table_length, current_state, b);
+            
+            if (next_state < 0i32) {
+                break;
+            }
+            
+            current_state = next_state;
+            lexer->cursor = lexer->cursor + 1i64;
+            
+            // Assume state IDs match token kinds and 0 is non-accepting
+            if (current_state > 0i32) {
+                last_accepting_state = current_state;
+                last_accepting_cursor = lexer->cursor;
+            }
         }
-        pass(Token { kind: 0i32, length: 0i32, line_terminator: 0i32, trivia_trailing: 0i32, offset: start });
+        
+        if (last_accepting_state > 0i32) {
+            lexer->cursor = last_accepting_cursor;
+            int32:token_len = @cast_unchecked<int32>(last_accepting_cursor - start);
+            pass(Token { kind: last_accepting_state, length: token_len, leading_trivia_len: 0i32, trailing_trivia_len: 0i32, offset: start });
+        }
+        
+        // Fallback to single character token if invalid
+        if (lexer->cursor == start && lexer->cursor < lexer->source.length) {
+            lexer->cursor = lexer->cursor + 1i64;
+            pass(Token { kind: 0i32, length: 1i32, leading_trivia_len: 0i32, trailing_trivia_len: 0i32, offset: start });
+        }
+        
+        pass(Token { kind: 0i32, length: 0i32, leading_trivia_len: 0i32, trailing_trivia_len: 0i32, offset: start });
     };

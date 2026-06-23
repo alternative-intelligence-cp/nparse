@@ -59,7 +59,10 @@ pub struct:GreenArena = {
         uint32:gen = 1u32;
         <-gen_ptr = gen;
 
-        pass(CompactHandle<GreenNode>{ index: @cast_unchecked<uint32>(idx), generation: @cast_unchecked<uint32>(gen) });
+        CompactHandle<GreenNode>:h;
+        h.index = @cast_unchecked<uint32>(idx);
+        h.generation = @cast_unchecked<uint32>(gen);
+        pass(h);
     };
 
     /// Retrieves a pointer to the GreenNode associated with the given Handle.

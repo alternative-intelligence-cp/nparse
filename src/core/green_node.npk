@@ -8,9 +8,8 @@ pub struct:GreenNode = {
     int32:kind;               // Token or AST Node kind identifier
     tbb32:width;              // Total byte length (including all children and trivia)
     
-    int16:child_count;        // Number of child nodes
-    int16:flags;              // Bitmask: 0x1 = contains_error, 0x2 = is_missing
-    int32:padding;            // Padding to align to 32 bytes
+    uint32:child_count;       // Number of child nodes
+    uint32:flags;             // Bitmask: 0x1 = contains_error, 0x2 = is_missing
     
     // Left-Child Right-Sibling (LCRS) Tree Structure
     // Eliminates the need for array allocation and SVO type confusion

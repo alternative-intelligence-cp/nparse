@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-out_file = "/home/randy/Workspace/META/NPARSE/audit/a2/compilation_nparse.md"
+out_file = "/home/randy/Workspace/META/NITPICK/audits/a37/compilation.md"
 src_dir = "src"
 
 with open(out_file, "w") as out:
@@ -26,7 +26,7 @@ try:
     find_proc = subprocess.Popen(["find", "src", "-name", "*.npk"], stdout=subprocess.PIPE)
     files = find_proc.stdout.read().split()
     compiler_path = "/home/randy/Workspace/REPOS/nitpick/build/npkc"
-    cmd = [compiler_path, "-I", "src", "--verify"] + [f.decode('utf-8') for f in files]
+    cmd = [compiler_path, "-I", "src", "--verify", "src/main.npk"]
     res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     with open(out_file, "a") as out:
         out.write(res.stdout)

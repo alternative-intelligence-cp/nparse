@@ -2,7 +2,7 @@ use "core/red_node.npk".RedNode;
 
 pub struct:TlcChunk = {
     wild int8->:buf;
-    wild any->:next;
+    wild ?->:next;
 };
 
 pub struct:ThreadLocalCache = {
@@ -57,7 +57,7 @@ pub struct:ThreadLocalCache = {
                 new_chunk->buf = @cast_unchecked<int8->>(alloc(cap));
                 new_chunk->next = NULL;
 
-                (<-(tlc->tail)).next = @cast_unchecked<any->>(new_chunk);
+                (<-(tlc->tail)).next = @cast_unchecked<?->>(new_chunk);
                 tlc->tail = new_chunk;
                 tlc->cursor = 0i64;
             }

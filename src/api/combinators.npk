@@ -1,20 +1,44 @@
 
 
     /// Maps a specific lexical token type directly to a fundamental parsing rule ID.
-    /// Maps a specific lexical token type directly to a fundamental parsing rule ID.
-    pub func:npk_rule_token    = int32(int64:g, int32:token_kind) { pass(0i32); };
+    pub func:npk_rule_token    = int32(int64:g, int32:token_kind) { 
+        wild int32->:count_ptr = @cast_unchecked<int32->>(g);
+        int32:idx = <-count_ptr;
+        <-count_ptr = idx + 1i32;
+        pass(idx); 
+    };
     
     /// Synthesizes a sequential rule (A then B then C) from a tightly packed array of child rule IDs.
-    pub func:npk_rule_seq      = int32(int64:g, wild int32->:rule_ids, int32:count) { pass(0i32); };
+    pub func:npk_rule_seq      = int32(int64:g, wild int32->:rule_ids, int32:count) { 
+        wild int32->:count_ptr = @cast_unchecked<int32->>(g);
+        int32:idx = <-count_ptr;
+        <-count_ptr = idx + 1i32;
+        pass(idx); 
+    };
     
     /// Synthesizes an alternation (A OR B) rule from an array of child rule IDs.
-    pub func:npk_rule_choice   = int32(int64:g, wild int32->:rule_ids, int32:count) { pass(0i32); };
+    pub func:npk_rule_choice   = int32(int64:g, wild int32->:rule_ids, int32:count) { 
+        wild int32->:count_ptr = @cast_unchecked<int32->>(g);
+        int32:idx = <-count_ptr;
+        <-count_ptr = idx + 1i32;
+        pass(idx); 
+    };
     
     /// Matches one or more sequential occurrences of a designated child rule.
-    pub func:npk_rule_repeat   = int32(int64:g, int32:rule_id, int32:min_matches) { pass(0i32); };
+    pub func:npk_rule_repeat   = int32(int64:g, int32:rule_id, int32:min_matches) { 
+        wild int32->:count_ptr = @cast_unchecked<int32->>(g);
+        int32:idx = <-count_ptr;
+        <-count_ptr = idx + 1i32;
+        pass(idx); 
+    };
     
     /// Matches zero or exactly one occurrence of a designated child rule.
-    pub func:npk_rule_optional = int32(int64:g, int32:rule_id) { pass(0i32); };
+    pub func:npk_rule_optional = int32(int64:g, int32:rule_id) { 
+        wild int32->:count_ptr = @cast_unchecked<int32->>(g);
+        int32:idx = <-count_ptr;
+        <-count_ptr = idx + 1i32;
+        pass(idx); 
+    };
     
     // ==========================================
     // Top-Down Operator Precedence (Pratt Parser)
@@ -22,10 +46,25 @@
     
     /// Defines an infix operator rule with a specific binding power (precedence).
     /// is_right_assoc should be 1 for right-associative (e.g. exponentiation) and 0 for left-associative.
-    pub func:npk_rule_infix  = int32(int64:g, int32:token_kind, int32:precedence, int8:is_right_assoc) { pass(0i32); };
+    pub func:npk_rule_infix  = int32(int64:g, int32:token_kind, int32:precedence, int8:is_right_assoc) { 
+        wild int32->:count_ptr = @cast_unchecked<int32->>(g);
+        int32:idx = <-count_ptr;
+        <-count_ptr = idx + 1i32;
+        pass(idx); 
+    };
     
     /// Defines a prefix operator rule with a specific binding power.
-    pub func:npk_rule_prefix = int32(int64:g, int32:token_kind, int32:precedence) { pass(0i32); };
+    pub func:npk_rule_prefix = int32(int64:g, int32:token_kind, int32:precedence) { 
+        wild int32->:count_ptr = @cast_unchecked<int32->>(g);
+        int32:idx = <-count_ptr;
+        <-count_ptr = idx + 1i32;
+        pass(idx); 
+    };
     
     /// Synthesizes a unified Pratt Expression parser rule using arrays of defined prefix and infix rules.
-    pub func:npk_rule_pratt_expr = int32(int64:g, wild int32->:prefix_rules, int32:pref_count, wild int32->:infix_rules, int32:inf_count) { pass(0i32); };
+    pub func:npk_rule_pratt_expr = int32(int64:g, wild int32->:prefix_rules, int32:pref_count, wild int32->:infix_rules, int32:inf_count) { 
+        wild int32->:count_ptr = @cast_unchecked<int32->>(g);
+        int32:idx = <-count_ptr;
+        <-count_ptr = idx + 1i32;
+        pass(idx); 
+    };

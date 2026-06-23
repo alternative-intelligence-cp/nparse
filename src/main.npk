@@ -1,6 +1,14 @@
 use "engine/context.npk".*;
+use "engine/execute.npk".*;
+use "engine/recovery.npk".*;
+use "lexer/dfa_lexer.npk".*;
+use "core/token.npk".*;
+use "core/source_map.npk".*;
+use "core/green_node.npk".*;
+use "core/red_node.npk".*;
+use "memory/handle.npk".*;
 use "parsers/json_parser.npk".*;
 use "parsers/toml_parser.npk".*;
 
-func:main = int32() { exit 0i32; };
-func:failsafe = int32(tbb32:err) { exit @cast_unchecked<int32>(err); };
+func:main = int32() { exit(0i32); };
+func:failsafe = int32(tbb32:err) { exit(@cast_unchecked<int32>(err)); };

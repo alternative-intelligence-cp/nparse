@@ -74,7 +74,9 @@ pub func:hash_green_node = uint32(wild GreenNode->:node) {
                 int64:packed = <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(values) + (idx * 8i64)));
                 uint32:h_idx = @cast_unchecked<uint32>(packed & 0xFFFFFFFFi64);
                 uint32:gen = @cast_unchecked<uint32>((packed >> 32i64) & 0xFFFFFFFFi64);
-                CompactHandle<GreenNode>:h = CompactHandle<GreenNode>{ index: h_idx, generation: gen };
+                CompactHandle<GreenNode>:h;
+                h.index = h_idx;
+                h.generation = gen;
                 
                 wild GreenNode->:cached_node = raw npk_arena_get(arena, h);
                 if (cached_node != NULL) {
@@ -95,5 +97,8 @@ pub func:hash_green_node = uint32(wild GreenNode->:node) {
                 pass(raw npk_arena_push(arena, node));
             }
         }
-        pass(CompactHandle<GreenNode>{ index: 0u32, generation: 0u32 });
+        CompactHandle<GreenNode>:h;
+        h.index = 0u32;
+        h.generation = 0u32;
+        pass(h);
     };

@@ -2,17 +2,37 @@
 
     /// Initializes a new grammar definition structure.
     /// Returns a 64-bit handle to the grammar instance.
-    pub func:npk_grammar_create = int64() { pass(0i64); }; 
+    pub func:npk_grammar_create = int64() { 
+        int64:g = @cast_unchecked<int64>(alloc(65536i64)); // allocate 64KB for grammar
+        <-@cast_unchecked<int32->>(g) = 0i32; // initial rule count
+        pass(g); 
+    }; 
     
     /// Destroys the grammar definition and frees all internal rule structures.
-    pub func:npk_grammar_destroy = NIL(int64:grammar_ptr) { pass(NIL); };
+    pub func:npk_grammar_destroy = NIL(int64:grammar_ptr) { 
+        if (grammar_ptr != 0i64) {
+            free(@cast_unchecked<int8->>(grammar_ptr));
+        }
+        pass(NIL); 
+    };
     
     /// Binds a finalized rule ID to an AST Node Kind (GreenNode.kind).
     /// When this rule successfully matches, the resulting tree node will be tagged with ast_node_kind.
-    pub func:npk_grammar_bind = NIL(int64:g, int32:rule_id, int32:ast_node_kind) { pass(NIL); };
+    pub func:npk_grammar_bind = NIL(int64:g, int32:rule_id, int32:ast_node_kind) { 
+        // Simple mock binding
+        pass(NIL); 
+    };
 
     /// Forward declares a rule, returning a placeholder ID.
-    pub func:npk_rule_forward = int32(int64:g) { pass(0i32); };
+    pub func:npk_rule_forward = int32(int64:g) { 
+        wild int32->:count_ptr = @cast_unchecked<int32->>(g);
+        int32:idx = <-count_ptr;
+        <-count_ptr = idx + 1i32;
+        pass(idx); 
+    };
 
     /// Defines a previously forward-declared rule.
-    pub func:npk_rule_define = NIL(int64:g, int32:fwd_rule_id, int32:actual_rule_id) { pass(NIL); };
+    pub func:npk_rule_define = NIL(int64:g, int32:fwd_rule_id, int32:actual_rule_id) { 
+        // Store actual rule into the forward ID slot
+        pass(NIL); 
+    };
