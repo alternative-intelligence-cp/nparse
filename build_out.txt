@@ -1,0 +1,69 @@
+[DEBUG parseFuncDecl] nameToken=main, peek()==, type=168
+[DEBUG parseFuncDecl] nameToken=failsafe, peek()==, type=168
+[DEBUG parseFuncDecl] nameToken=scoped_pass_begin, peek()==, type=168
+[DEBUG parseFuncDecl] nameToken=scoped_pass_destroy, peek()==, type=168
+[DEBUG parseFuncDecl] nameToken=npk_tlc_create, peek()==, type=168
+PARSING CAST: token=CAST_UNCHECKED isUnchecked=1
+PARSING CAST: token=CAST_UNCHECKED isUnchecked=1
+PARSING CAST: token=CAST_UNCHECKED isUnchecked=1
+[DEBUG parseFuncDecl] nameToken=npk_tlc_destroy, peek()==, type=168
+PARSING CAST: token=CAST_UNCHECKED isUnchecked=1
+PARSING CAST: token=CAST_UNCHECKED isUnchecked=1
+[DEBUG parseFuncDecl] nameToken=npk_tlc_alloc, peek()==, type=168
+PARSING CAST: token=CAST_UNCHECKED isUnchecked=1
+PARSING CAST: token=CAST_UNCHECKED isUnchecked=1
+PARSING CAST: token=CAST_UNCHECKED isUnchecked=1
+PARSING CAST: token=CAST_UNCHECKED isUnchecked=1
+PARSING CAST: token=CAST_UNCHECKED isUnchecked=1
+[DEBUG parseFuncDecl] nameToken=npk_tlc_alloc_red_node, peek()==, type=168
+[DEBUG parseFuncDecl] nameToken=npk_tlc_flush, peek()==, type=168
+PARSING CAST: token=CAST_UNCHECKED isUnchecked=1
+[DEBUG parseFuncDecl] nameToken=is_null, peek()=<, type=176
+[DEBUG parseFuncDecl] nameToken=npk_parser_json_create, peek()==, type=168
+PARSING CAST: token=CAST_UNCHECKED isUnchecked=1
+PARSING CAST: token=CAST_UNCHECKED isUnchecked=1
+PARSING CAST: token=CAST_UNCHECKED isUnchecked=1
+PARSING CAST: token=CAST_UNCHECKED isUnchecked=1
+[DEBUG parseFuncDecl] nameToken=npk_grammar_create, peek()==, type=168
+[DEBUG parseFuncDecl] nameToken=npk_grammar_destroy, peek()==, type=168
+[DEBUG parseFuncDecl] nameToken=npk_grammar_bind, peek()==, type=168
+[DEBUG parseFuncDecl] nameToken=npk_rule_forward, peek()==, type=168
+[DEBUG parseFuncDecl] nameToken=npk_rule_define, peek()==, type=168
+[DEBUG parseFuncDecl] nameToken=npk_rule_token, peek()==, type=168
+[DEBUG parseFuncDecl] nameToken=npk_rule_seq, peek()==, type=168
+[DEBUG parseFuncDecl] nameToken=npk_rule_choice, peek()==, type=168
+[DEBUG parseFuncDecl] nameToken=npk_rule_repeat, peek()==, type=168
+[DEBUG parseFuncDecl] nameToken=npk_rule_optional, peek()==, type=168
+[DEBUG parseFuncDecl] nameToken=npk_rule_infix, peek()==, type=168
+[DEBUG parseFuncDecl] nameToken=npk_rule_prefix, peek()==, type=168
+[DEBUG parseFuncDecl] nameToken=npk_rule_pratt_expr, peek()==, type=168
+[DEBUG parseFuncDecl] nameToken=npk_parser_toml_create, peek()==, type=168
+PARSING CAST: token=CAST_UNCHECKED isUnchecked=1
+PARSING CAST: token=CAST_UNCHECKED isUnchecked=1
+PARSING CAST: token=CAST_UNCHECKED isUnchecked=1
+PARSING CAST: token=CAST_UNCHECKED isUnchecked=1
+[DEBUG IR_GEN] Initializer generated for 'cap', value = 0x6210499dd6e0
+[DEBUG IR_GEN] InitVal type: 0x621049899fc8
+[DEBUG IR_GEN] Default builder.CreateStore for cap
+[DEBUG CODEGEN CALL] Generating call to: alloc
+[DEBUG IR_GEN] Initializer generated for 'first', value = 0x6210499dccc0
+[DEBUG IR_GEN] InitVal type: 0x6210499be050
+[DEBUG IR_GEN] Default builder.CreateStore for first
+[DEBUG ASSIGNMENT] op=168, leftType=6 (POINTER_MEMBER=7)
+[DEBUG ASSIGNMENT] op=168, leftType=6 (POINTER_MEMBER=7)
+[DEBUG CODEGEN CALL] Generating call to: alloc
+[DEBUG IR_GEN] Initializer generated for 'tlc', value = 0x6210499dd070
+[DEBUG IR_GEN] InitVal type: 0x6210499be050
+[DEBUG IR_GEN] Default builder.CreateStore for tlc
+[DEBUG ASSIGNMENT] op=168, leftType=6 (POINTER_MEMBER=7)
+[DEBUG ASSIGNMENT] op=168, leftType=6 (POINTER_MEMBER=7)
+[DEBUG ASSIGNMENT] op=168, leftType=6 (POINTER_MEMBER=7)
+[DEBUG ASSIGNMENT] op=168, leftType=6 (POINTER_MEMBER=7)
+[DEBUG IR_GEN] Initializer generated for 'curr', value = 0
+[DEBUG IR_GEN] Initializer generated for 'next', value = 0
+[DEBUG CODEGEN CALL] Generating call to: free
+[1m:6:1: [0m[1;33mwarning[0m: [1m[unused-parameter] parameter 'err' is unused in function 'failsafe'[0m
+
+[1m/home/randy/Workspace/REPOS/nparse/src/memory/tlc.npk:0:0: [0m[1;31merror[0m: [1mIR generation error: Unknown Nitpick type: TlcChunk[0m
+
+[1mSummary: [0m[1;31m1 error[0m, [1;33m1 warning[0m
