@@ -9,7 +9,7 @@ pub struct:RedNode = {
     CompactHandle<GreenNode>:green;   // Handle to the underlying structural data
     
     // Pointers are safe here because RedNodes are transient and flushed after use.
-    RedNode->:parent;          // Pointer to the parent RedNode
+    wild RedNode->:parent;          // Pointer to the parent RedNode
     
     int64:absolute_offset;     // Absolute byte offset, lazily calculated (-1 = uncalculated)
     int32:index_in_parent;     // The index of this node in the parent's children array

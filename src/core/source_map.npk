@@ -14,42 +14,49 @@ pub struct:LineCol = {
     /// Creates a new SourceMap with an initial capacity.
     pub func:source_map_create = wild SourceMap->(int32:initial_cap) {
         wild SourceMap->:sm = @cast_unchecked<SourceMap->>(alloc(16i64));
-        (<-sm).capacity = initial_cap;
-        (<-sm).line_count = 0i32;
-        (<-sm).line_starts = @cast_unchecked<int64->>(alloc(@cast_unchecked<int64>(initial_cap) * 8i64));
+        sm->capacity = initial_cap;
+        sm->line_count = 0i32;
+        sm->line_starts = @cast_unchecked<int64->>(alloc(@cast_unchecked<int64>(initial_cap) * 8i64));
         pass(sm);
     };
 
     pub func:source_map_destroy = NIL(wild SourceMap->:sm) {
         if (sm != NULL) {
-            dalloc(@cast_unchecked<int8->>((<-sm).line_starts));
+            dalloc(@cast_unchecked<int8->>(sm->line_starts));
             dalloc(@cast_unchecked<int8->>(sm));
         }
         pass(NIL);
     };
     /// Records the absolute byte offset of a new line.
-    pub func:source_map_add_line = NIL(wild SourceMap->:sm, int64:offset) {
-        if ((<-sm).line_count >= (<-sm).capacity) {
-            int32:new_cap = (<-sm).capacity * 2i32;
+    pub func:source_map_add_line = NIL(wild SourceMap->:sm, int64:offset)
+        requires sm->capacity < 1073741824i32
+    {
+        if (sm->line_count >= sm->capacity) {
+            int32:new_cap = is (sm->capacity == 0i32) : 8i32 : (sm->capacity * 2i32);
             int64:new_bytes = @cast_unchecked<int64>(new_cap) * 8i64;
-            (<-sm).line_starts = @cast_unchecked<int64->>(ralloc(@cast_unchecked<?->>((<-sm).line_starts), new_bytes));
-            (<-sm).capacity = new_cap;
+            wild int8->:new_ptr = ralloc(@cast_unchecked<?->>(sm->line_starts), new_bytes);
+            if (new_ptr == NULL) { fail(-2i32); } // SYS_OUT_OF_MEMORY
+            sm->line_starts = @cast_unchecked<int64->>(new_ptr);
+            sm->capacity = new_cap;
         }
-        int64:idx = @cast_unchecked<int64>((<-sm).line_count);
-        <-( @cast_unchecked<int64->>(@cast_unchecked<int64>((<-sm).line_starts) + (idx * 8i64)) ) = offset;
-        (<-sm).line_count = (<-sm).line_count + 1i32;
+        int64:idx = @cast_unchecked<int64>(sm->line_count);
+        <-( @cast_unchecked<int64->>(@cast_unchecked<int64>(sm->line_starts) + (idx * 8i64)) ) = offset;
+        sm->line_count = sm->line_count + 1i32;
         pass(NIL);
     };
 
     /// Resolves an absolute byte offset into a LineCol via binary search.
     pub func:source_map_resolve = LineCol(wild SourceMap->:sm, int64:offset) {
+        if (sm->line_count == 0i32) {
+            pass(LineCol { line: 1i32, column: @cast_unchecked<int32>(offset) + 1i32 });
+        }
         int32:low = 0i32;
-        int32:high = (<-sm).line_count - 1i32;
+        int32:high = sm->line_count - 1i32;
         int32:ans = 0i32;
 
         while (low <= high) {
             int32:mid = low + ((high - low) / 2i32);
-            if (<-( @cast_unchecked<int64->>(@cast_unchecked<int64>((<-sm).line_starts) + (@cast_unchecked<int64>(mid) * 8i64)) ) <= offset) {
+            if (<-( @cast_unchecked<int64->>(@cast_unchecked<int64>(sm->line_starts) + (@cast_unchecked<int64>(mid) * 8i64)) ) <= offset) {
                 ans = mid;
                 low = mid + 1i32;
             } else {
@@ -58,7 +65,7 @@ pub struct:LineCol = {
         }
 
         int32:line = ans + 1i32;
-        int64:start_offset = <-( @cast_unchecked<int64->>(@cast_unchecked<int64>((<-sm).line_starts) + (@cast_unchecked<int64>(ans) * 8i64)) );
+        int64:start_offset = <-( @cast_unchecked<int64->>(@cast_unchecked<int64>(sm->line_starts) + (@cast_unchecked<int64>(ans) * 8i64)) );
         int32:column = @cast_unchecked<int32>(offset - start_offset) + 1i32;
 
         pass(LineCol { line: line, column: column });

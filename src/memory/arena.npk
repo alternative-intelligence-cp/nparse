@@ -13,45 +13,50 @@ pub struct:GreenArena = {
     /// Creates a new GreenArena and returns an opaque 64-bit pointer.
     pub func:npk_arena_create = wild GreenArena->(int64:initial_capacity) {
         wild GreenArena->:arena = @cast_unchecked<GreenArena->>(alloc(32i64));
-        (<-arena).capacity = initial_capacity;
-        (<-arena).length = 0i64;
-        (<-arena).data = @cast_unchecked<GreenNode->>(alloc(initial_capacity * 32i64));
-        (<-arena).generations = @cast_unchecked<uint32->>(alloc(initial_capacity * 4i64));
+        arena->capacity = initial_capacity;
+        arena->length = 0i64;
+        arena->data = @cast_unchecked<GreenNode->>(alloc(initial_capacity * 32i64));
+        arena->generations = @cast_unchecked<uint32->>(calloc(initial_capacity, 4i64));
         pass(arena);
     };
 
     /// Destroys the GreenArena and frees all memory back to the OS.
     /// Callers MUST execute this strictly inside a `defer { ... }` block to ensure `[NITPICK-014]` leak analyzer compliance.
-    pub func:npk_arena_destroy = NIL(wild GreenArena->:arena) {
+    pub func:npk_arena_teardown = NIL(wild GreenArena->:arena) {
         if (arena != NULL) {
-            free(@cast_unchecked<int8->>((<-arena).data));
-            free(@cast_unchecked<int8->>((<-arena).generations));
-            free(@cast_unchecked<int8->>(arena));
+            free(@cast_unchecked<int8->>(arena->data));
+            free(@cast_unchecked<int8->>(arena->generations));
+            // Note: The caller must explicitly free the arena struct itself via `dalloc(arena)`
         }
         pass(NIL);
     };
 
     /// Pushes a new node into the arena and returns its generational Handle.
     pub func:npk_arena_push = CompactHandle<GreenNode>(wild GreenArena->:arena, wild GreenNode->:node_ptr) {
-        if ((<-arena).length >= (<-arena).capacity) {
-            int64:new_cap = (<-arena).capacity * 2i64;
-            (<-arena).data = @cast_unchecked<GreenNode->>(ralloc(@cast_unchecked<?->>((<-arena).data), new_cap * 32i64));
-            (<-arena).generations = @cast_unchecked<uint32->>(ralloc(@cast_unchecked<?->>((<-arena).generations), new_cap * 4i64));
-            (<-arena).capacity = new_cap;
-        }
-        int64:idx = (<-arena).length;
-        (<-arena).length = (<-arena).length + 1i64;
+        if (arena->length >= arena->capacity) {
+            int64:new_cap = is (arena->capacity == 0i64) : 8i64 : (arena->capacity * 2i64);
+            wild int8->:new_data = ralloc(@cast_unchecked<?->>(arena->data), new_cap * 32i64);
+            if (new_data == NULL) { fail(-2i32); } // SYS_OUT_OF_MEMORY
+            arena->data = @cast_unchecked<GreenNode->>(new_data);
 
-        wild GreenNode->:dst = @cast_unchecked<GreenNode->>(@cast_unchecked<int64>((<-arena).data) + (idx * 32i64));
+            wild int8->:new_gen = ralloc(@cast_unchecked<?->>(arena->generations), new_cap * 4i64);
+            if (new_gen == NULL) { fail(-2i32); } // SYS_OUT_OF_MEMORY
+            arena->generations = @cast_unchecked<uint32->>(new_gen);
+
+            till(new_cap - arena->capacity, 1i64) {
+                wild uint32->:zptr = @cast_unchecked<uint32->>(@cast_unchecked<int64>(arena->generations) + ((arena->capacity + $) * 4i64));
+                <-zptr = 0u32;
+            }
+            arena->capacity = new_cap;
+        }
+        int64:idx = arena->length;
+        arena->length = arena->length + 1i64;
+
+        wild GreenNode->:dst = @cast_unchecked<GreenNode->>(@cast_unchecked<int64>(arena->data) + (idx * 32i64));
         <-dst = <-node_ptr;
 
-        wild uint32->:gen_ptr = @cast_unchecked<uint32->>(@cast_unchecked<int64>((<-arena).generations) + (idx * 4i64));
-        uint32:gen = <-gen_ptr;
-        if (gen == 0u32) {
-            gen = 1u32;
-        } else {
-            gen = gen + 1u32;
-        }
+        wild uint32->:gen_ptr = @cast_unchecked<uint32->>(@cast_unchecked<int64>(arena->generations) + (idx * 4i64));
+        uint32:gen = 1u32;
         <-gen_ptr = gen;
 
         pass(CompactHandle<GreenNode>{ index: @cast_unchecked<uint32>(idx), generation: @cast_unchecked<uint32>(gen) });
@@ -60,12 +65,12 @@ pub struct:GreenArena = {
     /// Retrieves a pointer to the GreenNode associated with the given Handle.
     pub func:npk_arena_get = wild GreenNode->(wild GreenArena->:arena, CompactHandle<GreenNode>:handle) {
         int64:idx = @cast_unchecked<int64>(handle.index);
-        if (idx >= (<-arena).length) {
+        if (idx >= arena->length) {
             pass(NULL);
         }
-        wild uint32->:gen_ptr = @cast_unchecked<uint32->>(@cast_unchecked<int64>((<-arena).generations) + (idx * 4i64));
+        wild uint32->:gen_ptr = @cast_unchecked<uint32->>(@cast_unchecked<int64>(arena->generations) + (idx * 4i64));
         if ((<-gen_ptr) != @cast_unchecked<uint32>(handle.generation)) {
             pass(NULL);
         }
-        pass(@cast_unchecked<GreenNode->>(@cast_unchecked<int64>((<-arena).data) + (idx * 32i64)));
+        pass(@cast_unchecked<GreenNode->>(@cast_unchecked<int64>(arena->data) + (idx * 32i64)));
     };

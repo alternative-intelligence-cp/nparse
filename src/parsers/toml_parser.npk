@@ -15,6 +15,7 @@ fixed int32:T_NEWLINE     = 8i32;
 fixed int32:AST_TOML_TABLE_HEADER = 200i32;
 fixed int32:AST_TOML_KEY_VALUE    = 201i32;
 fixed int32:AST_TOML_DOCUMENT     = 202i32;
+fixed int32:AST_TOML_ARRAY_TABLE  = 203i32;
 
     /// Bootstraps and returns a Grammar handle for parsing TOML documents.
     pub func:npk_parser_toml_create = int64() {
@@ -26,24 +27,29 @@ fixed int32:AST_TOML_DOCUMENT     = 202i32;
 
         // KeyValue: Ident "=" Value
         int32[3]:kv_seq = [r_ident, _!npk_rule_token(g, T_EQUALS), r_value];
-        int32:r_keyval = _!npk_rule_seq(g, @cast_unchecked<int32->>(@kv_seq), 3);
-        _?npk_grammar_bind(g, r_keyval, AST_TOML_KEY_VALUE);
+        int32:r_keyval = _!npk_rule_seq(g, @cast_unchecked<int32->>(@kv_seq), 3i32);
+        _!npk_grammar_bind(g, r_keyval, AST_TOML_KEY_VALUE);
 
         // TableHeader: "[" Ident "]"
         int32[3]:th_seq = [_!npk_rule_token(g, T_LBRACKET), r_ident, _!npk_rule_token(g, T_RBRACKET)];
-        int32:r_table = _!npk_rule_seq(g, @cast_unchecked<int32->>(@th_seq), 3);
-        _?npk_grammar_bind(g, r_table, AST_TOML_TABLE_HEADER);
+        int32:r_table = _!npk_rule_seq(g, @cast_unchecked<int32->>(@th_seq), 3i32);
+        _!npk_grammar_bind(g, r_table, AST_TOML_TABLE_HEADER);
 
-        // Entry: (KeyValue | TableHeader) Newline
-        int32[2]:entry_choice = [r_keyval, r_table];
-        int32:r_entry = _!npk_rule_choice(g, @cast_unchecked<int32->>(@entry_choice), 2);
+        // ArrayTable: "[[" Ident "]]"
+        int32[3]:arr_table_seq = [_!npk_rule_token(g, T_DBL_LBRACKET), r_ident, _!npk_rule_token(g, T_DBL_RBRACKET)];
+        int32:r_arr_table = _!npk_rule_seq(g, @cast_unchecked<int32->>(@arr_table_seq), 3i32);
+        _!npk_grammar_bind(g, r_arr_table, AST_TOML_ARRAY_TABLE);
+
+        // Entry: (KeyValue | TableHeader | ArrayTable) Newline
+        int32[3]:entry_choice = [r_keyval, r_table, r_arr_table];
+        int32:r_entry = _!npk_rule_choice(g, @cast_unchecked<int32->>(@entry_choice), 3i32);
 
         int32[2]:doc_seq = [r_entry, r_nl];
-        int32:r_doc_entry = _!npk_rule_seq(g, @cast_unchecked<int32->>(@doc_seq), 2);
+        int32:r_doc_entry = _!npk_rule_seq(g, @cast_unchecked<int32->>(@doc_seq), 2i32);
 
         // Document: Entry*
-        int32:r_doc = _!npk_rule_repeat(g, r_doc_entry, 0);
-        _?npk_grammar_bind(g, r_doc, AST_TOML_DOCUMENT);
+        int32:r_doc = _!npk_rule_repeat(g, r_doc_entry, 0i32);
+        _!npk_grammar_bind(g, r_doc, AST_TOML_DOCUMENT);
 
         pass(g);
     };

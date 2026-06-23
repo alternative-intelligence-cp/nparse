@@ -18,7 +18,7 @@ pub struct:Lexer = {
     
     /// Executes one state transition in the DFA based on the current byte.
     /// Returns the new state ID, or -1 if the state is invalid/rejecting.
-    pub func:npk_lexer_transition = int32(wild int32[]->:table, int32:table_length, int32:current_state, int8:byte) {
+    pub func:npk_lexer_transition = int32(wild int32->:table, int32:table_length, int32:current_state, int8:byte) {
         uint8:u_byte = @cast_unchecked<uint8>(byte);
         int32:idx = (current_state * 256i32) + @cast_unchecked<int32>(u_byte);
         if (idx >= table_length || idx < 0i32) {
@@ -30,10 +30,25 @@ pub struct:Lexer = {
     /// Advances the lexer cursor past any ignorable trivia (whitespace, comments).
     /// Returns the number of bytes consumed.
     pub func:npk_lexer_consume_trivia = int32(wild Lexer->:lexer) {
-        pass(0i32);
+        int64:start = lexer->cursor;
+        while (lexer->cursor < lexer->source.length) {
+            int8:b = <-(@cast_unchecked<int8->>(@cast_unchecked<int64>(lexer->source.data) + lexer->cursor));
+            if (b == 32i8 || b == 9i8 || b == 10i8 || b == 13i8) {
+                lexer->cursor = lexer->cursor + 1i64;
+            } else {
+                break;
+            }
+        }
+        pass(@cast_unchecked<int32>(lexer->cursor - start));
     };
     
     /// Extracts the next lexical Token from the source stream.
     pub func:npk_lexer_next_token = Token(wild Lexer->:lexer) {
-        pass(Token { kind: 0i32, length: 0i32, line_terminator: 0i32, trivia_trailing: 0i32, offset: 0i64 });
+        int64:start = lexer->cursor;
+        while (lexer->cursor < lexer->source.length) {
+            int8:b = <-(@cast_unchecked<int8->>(@cast_unchecked<int64>(lexer->source.data) + lexer->cursor));
+            // DFA transition stub
+            break;
+        }
+        pass(Token { kind: 0i32, length: 0i32, line_terminator: 0i32, trivia_trailing: 0i32, offset: start });
     };

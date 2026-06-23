@@ -14,5 +14,5 @@ pub func:npk_tlc_create = wild ThreadLocalCache->() {
     pass(tlc);
 };
 
-func:main = int32() { exit 0i32; };
-func:failsafe = int32(tbb32:err) { exit 1i32; };
+func:main = int32() { exit(0i32); };
+func:failsafe = int32(tbb32:err) { exit(1i32); };
