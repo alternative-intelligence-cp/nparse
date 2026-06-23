@@ -1,0 +1,1 @@
+pub func:main = int32() { wild int32->:p = @cast_unchecked<int32->>(0i64); wild int32->:p2 = p + 4i64; pass(0i32); };

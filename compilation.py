@@ -1,6 +1,6 @@
 import os, subprocess
 out = []
-out.append('# NPARSE A37 Compilation\n\n')
+out.append('# NPARSE A39 Compilation\n\n')
 files_to_add = [
     'src/main.npk',
     'src/engine/context.npk',
@@ -20,7 +20,7 @@ files_to_add = [
     'src/api/combinators.npk',
     'src/parsers/json_parser.npk',
     'src/parsers/toml_parser.npk',
-    'src/test_ptr.npk',
+    'src/main.npk',
     'src/plugins/loader.npk',
     'src/plugins/hooks.npk'
 ]
@@ -46,5 +46,5 @@ for f in files_to_add:
             out.append(fp.read())
         out.append('\n```\n')
 
-with open('/home/randy/Workspace/META/NITPICK/audits/a37/compilation.md', 'w') as f:
+with open('/home/randy/Workspace/META/NITPICK/audits/a39/compilation.md', 'w') as f:
     f.write(''.join(out))

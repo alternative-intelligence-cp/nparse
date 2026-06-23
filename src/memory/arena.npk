@@ -12,10 +12,10 @@ pub struct:GreenArena = {
 
     /// Creates a new GreenArena and returns an opaque 64-bit pointer.
     pub func:npk_arena_create = wild GreenArena->(int64:initial_capacity) {
-        wild GreenArena->:arena = @cast_unchecked<GreenArena->>(alloc(32i64));
+        wild GreenArena->:arena = @cast_unchecked<GreenArena->>(alloc(@sizeof(GreenArena)));
         arena->capacity = initial_capacity;
         arena->length = 0i64;
-        arena->data = @cast_unchecked<GreenNode->>(alloc(initial_capacity * 32i64));
+        arena->data = @cast_unchecked<GreenNode->>(alloc(initial_capacity * @sizeof(GreenNode)));
         arena->generations = @cast_unchecked<uint32->>(calloc(initial_capacity, 4i64));
         pass(arena);
     };
@@ -24,8 +24,8 @@ pub struct:GreenArena = {
     /// Callers MUST execute this strictly inside a `defer { ... }` block to ensure `[NITPICK-014]` leak analyzer compliance.
     pub func:npk_arena_teardown = NIL(wild GreenArena->:arena) {
         if (arena != NULL) {
-            free(@cast_unchecked<int8->>(arena->data));
-            free(@cast_unchecked<int8->>(arena->generations));
+            dalloc(@cast_unchecked<int8->>(arena->data));
+            dalloc(@cast_unchecked<int8->>(arena->generations));
             // Note: The caller must explicitly free the arena struct itself via `dalloc(arena)`
         }
         pass(NIL);
@@ -35,7 +35,7 @@ pub struct:GreenArena = {
     pub func:npk_arena_push = CompactHandle<GreenNode>(wild GreenArena->:arena, wild GreenNode->:node_ptr) {
         if (arena->length >= arena->capacity) {
             int64:new_cap = is (arena->capacity == 0i64) : 8i64 : (arena->capacity * 2i64);
-            wild int8->:new_data = ralloc(@cast_unchecked<?->>(arena->data), new_cap * 32i64);
+            wild int8->:new_data = ralloc(@cast_unchecked<?->>(arena->data), new_cap * @sizeof(GreenNode));
             if (new_data == NULL) { fail(-2i32); } // SYS_OUT_OF_MEMORY
             arena->data = @cast_unchecked<GreenNode->>(new_data);
 

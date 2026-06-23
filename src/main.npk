@@ -10,5 +10,5 @@ use "memory/handle.npk".*;
 use "parsers/json_parser.npk".*;
 use "parsers/toml_parser.npk".*;
 
-func:main = int32() { exit(0i32); };
-func:failsafe = int32(tbb32:err) { exit(@cast_unchecked<int32>(err)); };
+pub func:main = int32() { exit(0i32); };
+pub func:failsafe = int32(tbb32:err) { exit(@cast_unchecked<int32>(err)); };

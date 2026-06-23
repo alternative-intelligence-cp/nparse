@@ -6,7 +6,7 @@ use "memory/handle.npk".CompactHandle;
 /// Packed to exactly 32 bytes for optimal CPU cache utilization.
 pub struct:GreenNode = {
     int32:kind;               // Token or AST Node kind identifier
-    tbb32:width;              // Total byte length (including all children and trivia)
+    int32:width;              // Total byte length (including all children and trivia)
     
     uint32:child_count;       // Number of child nodes
     uint32:flags;             // Bitmask: 0x1 = contains_error, 0x2 = is_missing

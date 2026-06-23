@@ -1,17 +1,26 @@
+use "core/precedence.npk".PrecedenceTable;
+use "core/precedence.npk".npk_precedence_table_create;
 
+pub struct:GrammarCtx = {
+    int32:rule_count;
+    wild RuleNode->:rules;
+    wild PrecedenceTable->:precedence;
+};
 
     /// Initializes a new grammar definition structure.
     /// Returns a 64-bit handle to the grammar instance.
     pub func:npk_grammar_create = int64() { 
-        int64:g = @cast_unchecked<int64>(alloc(65536i64)); // allocate 64KB for grammar
-        <-@cast_unchecked<int32->>(g) = 0i32; // initial rule count
-        pass(g); 
+        wild GrammarCtx->:ctx = @cast_unchecked<GrammarCtx->>(alloc(24i64));
+        ctx->rule_count = 1i32;
+        ctx->rules = @cast_unchecked<RuleNode->>(calloc(4096i64, 24i64));
+        ctx->precedence = _!npk_precedence_table_create(256i32);
+        pass(@cast_unchecked<int64>(ctx)); 
     }; 
     
     /// Destroys the grammar definition and frees all internal rule structures.
     pub func:npk_grammar_destroy = NIL(int64:grammar_ptr) { 
         if (grammar_ptr != 0i64) {
-            free(@cast_unchecked<int8->>(grammar_ptr));
+            dalloc(@cast_unchecked<int8->>(grammar_ptr));
         }
         pass(NIL); 
     };

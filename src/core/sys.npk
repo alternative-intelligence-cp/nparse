@@ -1,0 +1,1 @@
+pub func:failsafe = int32(tbb32:err) { exit(@cast_unchecked<int32>(err)); };

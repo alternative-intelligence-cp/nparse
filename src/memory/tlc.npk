@@ -18,7 +18,7 @@ pub struct:ThreadLocalCache = {
         first->buf = @cast_unchecked<int8->>(alloc(cap));
         first->next = NULL;
 
-        wild ThreadLocalCache->:tlc = @cast_unchecked<ThreadLocalCache->>(alloc(32i64));
+        wild ThreadLocalCache->:tlc = @cast_unchecked<ThreadLocalCache->>(alloc(24i64));
         tlc->head = first;
         tlc->tail = first;
         tlc->cursor = 0i64;

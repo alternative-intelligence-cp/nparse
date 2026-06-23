@@ -12,15 +12,15 @@ Rules<uint32>:r_valid_depth = { $ > 0u32 && $ <= 4096u32 };
     /// Core execution entrypoint. Matches the grammar against the source.
     /// Strictly limits recursion via max_recursion_depth to prevent call-stack exhaustion attacks.
     pub func:npk_parse = CompactHandle<GreenNode>(int64:grammar, StrView:source, limit<r_valid_depth> uint32:max_recursion_depth) {
-        astack(4096i64); // Zero-allocation LIFO scratchpad
+        int64:parse_stack = alist(4096i64); // Zero-allocation LIFO scratchpad
 
-        apush(1i64); // Start with root rule (assume rule ID 1 is root)
+        drop alpush(parse_stack, 1i64); // Start with root rule (assume rule ID 1 is root)
         
-        while (asize() > 0i64) {
-            int64:action = apop();
+        while (alsize(parse_stack) > 0i64) {
+            int64:action = alpop(parse_stack);
             
             // Security: Limit virtual stack depth
-            if (asize() > @cast_unchecked<int64>(max_recursion_depth)) {
+            if (alsize(parse_stack) > @cast_unchecked<int64>(max_recursion_depth)) {
                 fail(ERR_PARSE_DEPTH_EXCEEDED);
             }
             
