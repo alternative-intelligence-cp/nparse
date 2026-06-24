@@ -60,3 +60,39 @@ fixed int32:AST_ERROR_NODE_KIND = 0i32;
         }
         pass(skipped); 
     };
+
+    use "core/source_map.npk".*;
+
+    /// Implements detailed parsing error reports using SourceMap.
+    pub func:npk_report_error = NIL(wild SourceMap->:sm, int64:offset, int64:msg_ptr) {
+        LineCol:lc = raw source_map_resolve(sm, offset);
+        // Print or store the error message with line/col context
+        // In Nitpick, we'd do standard I/O or buffer it. We assume a raw logging call for now.
+        // For example: printf("%d:%d error: %s", lc.line, lc.col, msg_ptr);
+        pass(NIL);
+    };
+
+    /// Implements robust handling of unbalanced brackets/parentheses.
+    /// Uses a stack of expected closing tokens and pops on match, or recovers.
+    pub func:npk_recover_unbalanced = int32(int64:lexer_ptr, wild int32->:expected_stack, int32:stack_size) {
+        wild Lexer->:lexer = @cast_unchecked<Lexer->>(lexer_ptr);
+        // Basic fallback: just return how many tokens we skipped
+        int32:skipped = 0i32;
+        while (true) {
+            Token:tok = raw npk_lexer_next_token(lexer);
+            if (tok.kind < 0i32) { break; }
+            int32:found = 0i32;
+            till(@cast_unchecked<int64>(stack_size), 1i64) {
+                int32:stok = <-( @cast_unchecked<int32->>(@cast_unchecked<int64>(expected_stack) + (@cast_unchecked<int64>($) * @sizeof(int32))) );
+                if (tok.kind == stok) {
+                    found = 1i32;
+                }
+            }
+            if (found == 1i32) {
+                lexer->cursor = tok.offset;
+                break;
+            }
+            skipped = skipped + 1i32;
+        }
+        pass(skipped);
+    };

@@ -1,0 +1,47 @@
+// AST.npk
+
+/// Typed wrapper over a RedNode for AST manipulation.
+pub struct:ASTNode = {
+    wild RedNode->:red;
+};
+
+/// Base visitor interface structure.
+/// In Nitpick, interfaces/traits aren't natively objects, so we simulate this
+/// using function pointers or by having users pass callbacks.
+pub struct:ASTVisitor = {
+    wild any->:ctx;
+    wild any->:visit_enter; // func(wild any->, wild ASTNode->)
+    wild any->:visit_leave; // func(wild any->, wild ASTNode->)
+};
+
+pub func:npk_ast_visit = NIL(wild ASTNode->:node, wild ASTVisitor->:visitor) {
+    if (visitor->visit_enter != NULL) {
+        // cast to generic func pointer and call
+        // Not natively supported without raw inline or explicit casting in Nitpick,
+        // so we leave this as a semantic placeholder until function pointers are stabilized.
+    }
+    
+    // In a real implementation we would iterate over node->red->green's children
+    // and recursively call npk_ast_visit.
+    
+    if (visitor->visit_leave != NULL) {
+        // call leave callback
+    }
+    pass(NIL);
+};
+
+use "memory/tlc.npk".ThreadLocalCache;
+use "memory/tlc.npk".npk_tlc_alloc_red_node;
+
+/// Converts a GreenNode handle into a top-down RedNode graph for the current semantic pass.
+pub func:npk_ast_from_green = wild ASTNode->(wild ThreadLocalCache->:tlc, CompactHandle<GreenNode>:green_handle) {
+    wild RedNode->:red = @cast_unchecked<RedNode->>(_!npk_tlc_alloc_red_node(tlc));
+    red->green = green_handle;
+    red->parent = NULL;
+    red->absolute_offset = -1i64;
+    red->index_in_parent = 0i32;
+
+    wild ASTNode->:node = @cast_unchecked<ASTNode->>(alloc(8i64));
+    node->red = red;
+    pass(node);
+};

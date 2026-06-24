@@ -1,0 +1,22 @@
+use "../memory/tlc.npk".*;
+
+/// Basic profiler struct to wrap memory statistics
+pub struct:Profiler = {
+    int64:start_time;
+    int64:peak_memory;
+};
+
+pub func:npk_profiler_create = wild Profiler->() {
+    wild Profiler->:p = @cast_unchecked<Profiler->>(alloc(16i64));
+    p->start_time = 0i64; // mock
+    p->peak_memory = 0i64;
+    pass(p);
+};
+
+pub func:npk_profiler_report = NIL(wild Profiler->:p, wild ThreadLocalCache->:tlc) {
+    if (tlc != NULL) {
+        p->peak_memory = tlc->high_water_mark;
+    }
+    // Print or assert metrics
+    pass(NIL);
+};

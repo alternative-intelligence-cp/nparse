@@ -1,5 +1,5 @@
+use "../failsafe.npk".*;
 use "core/red_node.npk".RedNode;
-
 pub struct:TlcChunk = {
     wild int8->:buf;
     wild any->:next;
@@ -11,6 +11,8 @@ pub struct:ThreadLocalCache = {
     wild int8->:bump_ptr;
     int64:bytes_remaining;
     int64:chunk_capacity;
+    int64:active_bytes;
+    int64:high_water_mark;
 };
 
     pub func:npk_tlc_create = wild ThreadLocalCache->() {
@@ -52,6 +54,8 @@ pub struct:ThreadLocalCache = {
             wild int8->:res = tlc->bump_ptr;
             tlc->bump_ptr = @cast_unchecked<int8->>(@cast_unchecked<int64>(res) + (@cast_unchecked<int64>(aligned_size) * @sizeof(int8)));
             tlc->bytes_remaining = tlc->bytes_remaining - aligned_size;
+            tlc->active_bytes = tlc->active_bytes + aligned_size;
+            if (tlc->active_bytes > tlc->high_water_mark) { tlc->high_water_mark = tlc->active_bytes; }
             pass(@cast_unchecked<any->>(res));
         }
         wild TlcChunk->:t_tail = tlc->tail;
@@ -76,6 +80,8 @@ pub struct:ThreadLocalCache = {
         wild int8->:res2 = tlc->bump_ptr;
         tlc->bump_ptr = @cast_unchecked<int8->>(@cast_unchecked<int64>(res2) + (@cast_unchecked<int64>(aligned_size) * @sizeof(int8)));
         tlc->bytes_remaining = tlc->bytes_remaining - aligned_size;
+        tlc->active_bytes = tlc->active_bytes + aligned_size;
+        if (tlc->active_bytes > tlc->high_water_mark) { tlc->high_water_mark = tlc->active_bytes; }
         pass(@cast_unchecked<any->>(res2));
     };
 
@@ -93,7 +99,17 @@ pub struct:ThreadLocalCache = {
                 tlc->tail = head;
                 tlc->bump_ptr = head->buf;
                 tlc->bytes_remaining = tlc->chunk_capacity;
+                tlc->active_bytes = 0i64;
             }
         }
         pass(NIL);
+    };
+
+    /// Checks if TLC memory usage exceeds the GC threshold (e.g. 1MB).
+    /// Returns 1 if a flush is recommended, 0 otherwise.
+    pub func:npk_tlc_should_gc = int32(wild ThreadLocalCache->:tlc) {
+        if (tlc->active_bytes > 1048576i64) {
+            pass(1i32);
+        }
+        pass(0i32);
     };

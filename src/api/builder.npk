@@ -7,9 +7,11 @@ pub struct:RuleNode = {
     int64:min_matches;
     int64:precedence;
     int64:is_right_assoc;
+    int64:is_positive;
     int64:child_count;
     int64:infix_count;
     int64:single_child;
+    int64:capture_name;
     wild int32->:children;
     wild int32->:infix_rules;
 };
@@ -18,6 +20,8 @@ pub struct:GrammarCtx = {
     int32:rule_count;
     wild RuleNode->:rules;
     wild PrecedenceTable->:precedence;
+    wild int32->:sync_tokens;
+    int32:sync_count;
 };
 
     /// Initializes a new grammar definition structure.
@@ -25,7 +29,7 @@ pub struct:GrammarCtx = {
     pub func:npk_grammar_create = int64() { 
         wild GrammarCtx->:ctx = @cast_unchecked<GrammarCtx->>(alloc(24i64));
         ctx->rule_count = 1i32;
-        ctx->rules = @cast_unchecked<RuleNode->>(calloc(4096i64, 80i64));
+        ctx->rules = @cast_unchecked<RuleNode->>(calloc(4096i64, 96i64));
         ctx->precedence = _!npk_precedence_table_create(256i32);
         pass(@cast_unchecked<int64>(ctx)); 
     }; 
@@ -60,4 +64,12 @@ pub struct:GrammarCtx = {
     pub func:npk_rule_define = NIL(int64:g, int32:fwd_rule_id, int32:actual_rule_id) { 
         // Store actual rule into the forward ID slot
         pass(NIL); 
+    };
+
+    /// Sets the synchronization tokens for panic mode error recovery for this grammar.
+    pub func:npk_grammar_set_sync_tokens = NIL(int64:g, wild int32->:tokens, int32:count) {
+        wild GrammarCtx->:ctx = @cast_unchecked<GrammarCtx->>(g);
+        ctx->sync_tokens = tokens;
+        ctx->sync_count = count;
+        pass(NIL);
     };

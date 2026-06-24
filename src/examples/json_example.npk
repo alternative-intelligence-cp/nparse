@@ -1,0 +1,10 @@
+use "../api/combinators.npk".*;
+use "../api/builder.npk".*;
+
+pub func:npk_example_json_parser = wild GrammarCtx->() {
+    int64:g_ptr = raw npk_grammar_create();
+    wild GrammarCtx->:g = @cast_unchecked<GrammarCtx->>(g_ptr);
+    int32:r_object = raw npk_rule_forward(g_ptr);
+    int32:r_array = raw npk_rule_forward(g_ptr);
+    pass(g);
+};

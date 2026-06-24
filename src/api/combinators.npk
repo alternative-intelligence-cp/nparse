@@ -1,11 +1,12 @@
-
-    /// Maps a specific lexical token type directly to a fundamental parsing rule ID.
+use "unsafe.npk".*;
+use "api/builder.npk".*;
+/// Maps a specific lexical token type directly to a fundamental parsing rule ID.
     pub func:npk_rule_token    = int32(int64:g, int32:token_kind) { 
         wild GrammarCtx->:ctx = @cast_unchecked<GrammarCtx->>(g);
         int32:idx = ctx->rule_count;
         ctx->rule_count = idx + 1i32;
         wild int8->:rules_base = @cast_unchecked<int8->>(ctx->rules);
-        wild RuleNode->:node = @cast_unchecked<RuleNode->>(@cast_unchecked<int8->>(@cast_unchecked<int64>(rules_base) + (@cast_unchecked<int64>(idx) * 80i64)));
+        wild RuleNode->:node = @cast_unchecked<RuleNode->>(@cast_unchecked<int8->>(@cast_unchecked<int64>(rules_base) + (@cast_unchecked<int64>(idx) * 96i64)));
         node->kind = 1i64;
         node->token_kind = @cast_unchecked<int64>(token_kind);
         pass(idx); 
@@ -17,7 +18,7 @@
         int32:idx = ctx->rule_count;
         ctx->rule_count = idx + 1i32;
         wild int8->:rules_base = @cast_unchecked<int8->>(ctx->rules);
-        wild RuleNode->:node = @cast_unchecked<RuleNode->>(@cast_unchecked<int8->>(@cast_unchecked<int64>(rules_base) + (@cast_unchecked<int64>(idx) * 80i64)));
+        wild RuleNode->:node = @cast_unchecked<RuleNode->>(@cast_unchecked<int8->>(@cast_unchecked<int64>(rules_base) + (@cast_unchecked<int64>(idx) * 96i64)));
         node->kind = 2i64;
         node->children = rule_ids;
         node->child_count = @cast_unchecked<int64>(count);
@@ -30,7 +31,7 @@
         int32:idx = ctx->rule_count;
         ctx->rule_count = idx + 1i32;
         wild int8->:rules_base = @cast_unchecked<int8->>(ctx->rules);
-        wild RuleNode->:node = @cast_unchecked<RuleNode->>(@cast_unchecked<int8->>(@cast_unchecked<int64>(rules_base) + (@cast_unchecked<int64>(idx) * 80i64)));
+        wild RuleNode->:node = @cast_unchecked<RuleNode->>(@cast_unchecked<int8->>(@cast_unchecked<int64>(rules_base) + (@cast_unchecked<int64>(idx) * 96i64)));
         node->kind = 3i64;
         node->children = rule_ids;
         node->child_count = @cast_unchecked<int64>(count);
@@ -43,7 +44,7 @@
         int32:idx = ctx->rule_count;
         ctx->rule_count = idx + 1i32;
         wild int8->:rules_base = @cast_unchecked<int8->>(ctx->rules);
-        wild RuleNode->:node = @cast_unchecked<RuleNode->>(@cast_unchecked<int8->>(@cast_unchecked<int64>(rules_base) + (@cast_unchecked<int64>(idx) * 80i64)));
+        wild RuleNode->:node = @cast_unchecked<RuleNode->>(@cast_unchecked<int8->>(@cast_unchecked<int64>(rules_base) + (@cast_unchecked<int64>(idx) * 96i64)));
         node->kind = 4i64;
         node->single_child = @cast_unchecked<int64>(rule_id);
         node->min_matches = @cast_unchecked<int64>(min_matches);
@@ -56,7 +57,7 @@
         int32:idx = ctx->rule_count;
         ctx->rule_count = idx + 1i32;
         wild int8->:rules_base = @cast_unchecked<int8->>(ctx->rules);
-        wild RuleNode->:node = @cast_unchecked<RuleNode->>(@cast_unchecked<int8->>(@cast_unchecked<int64>(rules_base) + (@cast_unchecked<int64>(idx) * 80i64)));
+        wild RuleNode->:node = @cast_unchecked<RuleNode->>(@cast_unchecked<int8->>(@cast_unchecked<int64>(rules_base) + (@cast_unchecked<int64>(idx) * 96i64)));
         node->kind = 5i64;
         node->single_child = @cast_unchecked<int64>(rule_id);
         pass(idx); 
@@ -73,7 +74,7 @@
         int32:idx = ctx->rule_count;
         ctx->rule_count = idx + 1i32;
         wild int8->:rules_base = @cast_unchecked<int8->>(ctx->rules);
-        wild RuleNode->:node = @cast_unchecked<RuleNode->>(@cast_unchecked<int8->>(@cast_unchecked<int64>(rules_base) + (@cast_unchecked<int64>(idx) * 80i64)));
+        wild RuleNode->:node = @cast_unchecked<RuleNode->>(@cast_unchecked<int8->>(@cast_unchecked<int64>(rules_base) + (@cast_unchecked<int64>(idx) * 96i64)));
         node->kind = 6i64;
         node->token_kind = @cast_unchecked<int64>(token_kind);
         node->precedence = @cast_unchecked<int64>(precedence);
@@ -87,7 +88,7 @@
         int32:idx = ctx->rule_count;
         ctx->rule_count = idx + 1i32;
         wild int8->:rules_base = @cast_unchecked<int8->>(ctx->rules);
-        wild RuleNode->:node = @cast_unchecked<RuleNode->>(@cast_unchecked<int8->>(@cast_unchecked<int64>(rules_base) + (@cast_unchecked<int64>(idx) * 80i64)));
+        wild RuleNode->:node = @cast_unchecked<RuleNode->>(@cast_unchecked<int8->>(@cast_unchecked<int64>(rules_base) + (@cast_unchecked<int64>(idx) * 96i64)));
         node->kind = 7i64;
         node->token_kind = @cast_unchecked<int64>(token_kind);
         node->precedence = @cast_unchecked<int64>(precedence);
@@ -100,11 +101,46 @@
         int32:idx = ctx->rule_count;
         ctx->rule_count = idx + 1i32;
         wild int8->:rules_base = @cast_unchecked<int8->>(ctx->rules);
-        wild RuleNode->:node = @cast_unchecked<RuleNode->>(@cast_unchecked<int8->>(@cast_unchecked<int64>(rules_base) + (@cast_unchecked<int64>(idx) * 80i64)));
+        wild RuleNode->:node = @cast_unchecked<RuleNode->>(@cast_unchecked<int8->>(@cast_unchecked<int64>(rules_base) + (@cast_unchecked<int64>(idx) * 96i64)));
         node->kind = 8i64;
         node->children = prefix_rules;
         node->child_count = @cast_unchecked<int64>(pref_count);
         node->infix_rules = infix_rules;
         node->infix_count = @cast_unchecked<int64>(inf_count);
         pass(idx); 
+    };
+
+    /// Lookahead: Matches a rule without consuming tokens.
+    pub func:npk_rule_lookahead = int32(int64:g, int32:rule_id, int8:positive) {
+        wild GrammarCtx->:ctx = @cast_unchecked<GrammarCtx->>(g);
+        int32:idx = ctx->rule_count;
+        ctx->rule_count = idx + 1i32;
+        wild RuleNode->:node = @cast_unchecked<RuleNode->>(@cast_unchecked<int64>(ctx->rules) + (@cast_unchecked<int64>(idx) * 96i64));
+        node->kind = 9i64;
+        node->single_child = @cast_unchecked<int64>(rule_id);
+        node->is_positive = @cast_unchecked<int64>(positive);
+        pass(idx);
+    };
+
+    /// Not: Succeeds only if the child rule fails to match.
+    pub func:npk_rule_not = int32(int64:g, int32:rule_id) {
+        wild GrammarCtx->:ctx = @cast_unchecked<GrammarCtx->>(g);
+        int32:idx = ctx->rule_count;
+        ctx->rule_count = idx + 1i32;
+        wild RuleNode->:node = @cast_unchecked<RuleNode->>(@cast_unchecked<int64>(ctx->rules) + (@cast_unchecked<int64>(idx) * 96i64));
+        node->kind = 10i64;
+        node->single_child = @cast_unchecked<int64>(rule_id);
+        pass(idx);
+    };
+
+    /// Capture: Wraps a rule with a capture group name.
+    pub func:npk_rule_capture = int32(int64:g, int32:rule_id, int64:name) {
+        wild GrammarCtx->:ctx = @cast_unchecked<GrammarCtx->>(g);
+        int32:idx = ctx->rule_count;
+        ctx->rule_count = idx + 1i32;
+        wild RuleNode->:node = @cast_unchecked<RuleNode->>(@cast_unchecked<int64>(ctx->rules) + (@cast_unchecked<int64>(idx) * 96i64));
+        node->kind = 11i64;
+        node->single_child = @cast_unchecked<int64>(rule_id);
+        node->capture_name = name;
+        pass(idx);
     };

@@ -12,3 +12,8 @@ use "parsers/toml_parser.npk".*;
 
 pub func:main = int32() { exit(0i32); };
 pub func:failsafe = int32(tbb32:err) { exit(@cast_unchecked<int32>(err)); };
+use "core/ast.npk".*;
+use "test/profiler.npk".*;
+use "examples/json_example.npk".*;
+use "examples/toml_example.npk".*;
+use "examples/lisp_example.npk".*;
