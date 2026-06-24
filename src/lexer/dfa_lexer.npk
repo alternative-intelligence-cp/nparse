@@ -30,7 +30,7 @@ pub struct:Lexer = {
         if (idx >= table_length || idx < 0i32) {
             pass(-1i32);
         }
-        pass(<-( @ptr_add<int32>(table, @cast_unchecked<int64>(idx)) ));
+        pass(<-( @cast_unchecked<int32->>(@cast_unchecked<int64>(table) + (@cast_unchecked<int64>(@cast_unchecked<int64>(idx) * @sizeof(int32)))) ));
     };
     
     /// Advances the lexer cursor past any ignorable trivia (whitespace, comments).
@@ -38,7 +38,8 @@ pub struct:Lexer = {
     pub func:npk_lexer_consume_trivia = int32(wild Lexer->:lexer) {
         int64:start = lexer->cursor;
         while (lexer->cursor < lexer->source.length) {
-            int8:b = <-(@ptr_add<int8>(lexer->source.data, lexer->cursor));
+            wild int8->:src_data = @cast_unchecked<int8->>(lexer->source.data);
+            int8:b = <-(@cast_unchecked<int8->>(@cast_unchecked<int64>(src_data) + (@cast_unchecked<int64>(lexer->cursor) * @sizeof(int8))));
             if (b == 32i8 || b == 9i8 || b == 10i8 || b == 13i8) {
                 lexer->cursor = lexer->cursor + 1i64;
             } else {
@@ -56,7 +57,8 @@ pub struct:Lexer = {
         int64:last_accepting_cursor = start;
 
         while (lexer->cursor < lexer->source.length) {
-            int8:b = <-(@ptr_add<int8>(lexer->source.data, lexer->cursor));
+            wild int8->:src_data = @cast_unchecked<int8->>(lexer->source.data);
+            int8:b = <-(@cast_unchecked<int8->>(@cast_unchecked<int64>(src_data) + (@cast_unchecked<int64>(lexer->cursor) * @sizeof(int8))));
             
             // DFA transition
             int32:next_state = raw npk_lexer_transition(lexer->dfa_table, lexer->table_length, current_state, b);

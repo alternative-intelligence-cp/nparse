@@ -16,9 +16,9 @@ fixed int32:AST_ERROR_NODE_KIND = 0i32;
         
         GreenNode:node;
         node.kind = AST_ERROR_NODE_KIND;
-        node.width = @cast_unchecked<tbb32>(bad_token->length + bad_token->leading_trivia_len + bad_token->trailing_trivia_len);
-        node.child_count = 0i32;
-        node.flags = 1u8; // contains_error
+        node.width = bad_token->length + bad_token->leading_trivia_len + bad_token->trailing_trivia_len;
+        node.child_count = 0u32;
+        node.flags = 1u32; // contains_error
         
         CompactHandle<GreenNode>:empty_h;
         empty_h.index = 0u32;
@@ -36,13 +36,14 @@ fixed int32:AST_ERROR_NODE_KIND = 0i32;
         wild Lexer->:lexer = @cast_unchecked<Lexer->>(lexer_ptr);
         int32:skipped = 0i32;
         while (true) {
+            raw npk_lexer_consume_trivia(lexer);
             Token:tok = raw npk_lexer_next_token(lexer);
             if (tok.kind < 0i32) { // EOF
                 break;
             }
             int32:found = 0i32;
             till(@cast_unchecked<int64>(sync_count), 1i64) {
-                int32:stok = <-( @ptr_add<int32>(sync_tokens, $) );
+                int32:stok = <-( @cast_unchecked<int32->>(@cast_unchecked<int64>(sync_tokens) + (@cast_unchecked<int64>($) * @sizeof(int32))) );
                 if (tok.kind == stok) {
                     found = 1i32;
                 }

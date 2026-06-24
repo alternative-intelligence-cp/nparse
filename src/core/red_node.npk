@@ -2,6 +2,7 @@
 
 
 use "core/green_node.npk".GreenNode;
+use "memory/handle.npk".CompactHandle;
 
 /// The ephemeral, top-down facade node representing an absolute position.
 /// RedNodes must only be allocated via the Thread-Local Cache (TLC) and never outlive the traversal pass.

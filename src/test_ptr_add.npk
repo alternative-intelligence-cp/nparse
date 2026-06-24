@@ -1,0 +1,7 @@
+use "unsafe.npk".*;
+
+pub func:test = NIL() {
+    wild int8->:base = @cast_unchecked<int8->>(alloc(100i64));
+    wild int8->:res = @cast_unchecked<int8->>(@cast_unchecked<int64>(base) + (@cast_unchecked<int64>(10i64) * @sizeof(int8)));
+    pass(NIL);
+};

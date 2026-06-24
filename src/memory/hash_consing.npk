@@ -4,6 +4,13 @@ use "memory/handle.npk".CompactHandle;
 use "memory/arena.npk".*;
 
 /// FNV-1a hash algorithm constants
+pub struct:NodeHashMap = {
+    int64:capacity;
+    int64:length;
+    wild int64->:keys;
+    wild int64->:values;
+};
+
 fixed uint32:FNV_PRIME = 16777619u32;
 fixed uint32:FNV_OFFSET_BASIS = 2166136261u32;
 
@@ -32,7 +39,7 @@ pub func:hash_green_node = uint32(wild GreenNode->:node) {
     uint32:hash = FNV_OFFSET_BASIS;
     wild uint64->:ptr = @cast_unchecked<uint64->>(node);
     till(4i64, 1i64) {
-        uint64:val = <-(@ptr_add<uint64>(ptr, $));
+        uint64:val = <-(@cast_unchecked<uint64->>(@cast_unchecked<int64>(ptr) + (@cast_unchecked<int64>($) * @sizeof(uint64))));
         uint32:lower = @cast_unchecked<uint32>(val & 0xFFFFFFFFu64);
         uint32:upper = @cast_unchecked<uint32>((val >> 32u64) & 0xFFFFFFFFu64);
         hash = raw npk_fnv1a_mix(hash, lower);
@@ -44,39 +51,67 @@ pub func:hash_green_node = uint32(wild GreenNode->:node) {
     /// Checks the structural sharing cache. If a matching node exists, returns its handle.
     /// Otherwise, pushes the new node to the arena, caches it, and returns the new handle.
     pub func:npk_hash_cons_push = CompactHandle<GreenNode>(
-        int64:hash_map_ptr,
+        wild NodeHashMap->:map,
         wild GreenArena->:arena,
         wild GreenNode->:node
     ) {
         uint64:hash = raw hash_green_node(node);
         if (hash == 0u64) { hash = 1u64; }
         
-        wild int64->:map_cap_ptr = @cast_unchecked<int64->>(hash_map_ptr);
-        int64:capacity = <-map_cap_ptr;
-        // Rehash expansion
-        int64:load_limit = (capacity / 4i64) * 3i64; // 0.75
-        // (Mock rehashing omitted for brevity in audit resolution)
+        int64:load_limit = (map->capacity / 4i64) * 3i64; // 0.75
+        if (map->length >= load_limit) {
+            int64:new_cap = is (map->capacity == 0i64) : 1024i64 : (map->capacity * 2i64);
+            wild int64->:new_keys = @cast_unchecked<int64->>(calloc(new_cap, @sizeof(int64)));
+            wild int64->:new_vals = @cast_unchecked<int64->>(calloc(new_cap, @sizeof(int64)));
+            
+            if (map->capacity > 0i64) {
+                int64:new_mask = new_cap - 1i64;
+                till(map->capacity, 1i64) {
+                    int64:old_key = <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(map->keys) + (@cast_unchecked<int64>($) * @sizeof(int64))));
+                    if (old_key != 0i64) {
+                        int64:old_val = <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(map->values) + (@cast_unchecked<int64>($) * @sizeof(int64))));
+                        int64:new_idx = old_key & new_mask; 
+                        while (true) {
+                            wild int64->:k_ptr = @cast_unchecked<int64->>(@cast_unchecked<int64>(new_keys) + (@cast_unchecked<int64>(new_idx) * @sizeof(int64)));
+                            if (<-k_ptr == 0i64) {
+                                <-k_ptr = old_key;
+                                <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(new_vals) + (@cast_unchecked<int64>(new_idx) * @sizeof(int64)))) = old_val;
+                                break;
+                            }
+                            new_idx = (new_idx + 1i64) & new_mask;
+                        }
+                    }
+                }
+                dalloc(@cast_unchecked<int8->>(map->keys));
+                dalloc(@cast_unchecked<int8->>(map->values));
+            }
+            
+            map->capacity = new_cap;
+            map->keys = new_keys;
+            map->values = new_vals;
+        }
+        
+        wild int64->:keys = map->keys;
+        wild int64->:values = map->values;
+        int64:capacity = map->capacity;
         
         int64:mask = capacity - 1i64;
-        
-        wild int64->:keys = @cast_unchecked<int64->>(hash_map_ptr + 8i64);
-        wild int64->:values = @cast_unchecked<int64->>(hash_map_ptr + 8i64 + (capacity * 8i64));
-        
-        int64:idx = @cast_unchecked<int64>(hash) & mask;
+        int64:idx = @cast_unchecked<int64>(hash & 0x7FFFFFFFFFFFFFFFu64) & mask;
         int64:start_idx = idx;
         
         while (true) {
-            wild int64->:k_ptr = @ptr_add<int64>(keys, idx);
+            wild int64->:k_ptr = @cast_unchecked<int64->>(@cast_unchecked<int64>(keys) + (@cast_unchecked<int64>(idx) * @sizeof(int64)));
             int64:k = <-k_ptr;
             if (k == 0i64) {
                 CompactHandle<GreenNode>:new_handle = raw npk_arena_push(arena, node);
                 <-k_ptr = @cast_unchecked<int64>(hash);
-                <-(@ptr_add<int64>(values, idx)) = 
+                <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(values) + (@cast_unchecked<int64>(idx) * @sizeof(int64)))) = 
                     @cast_unchecked<int64>(new_handle.index) | (@cast_unchecked<int64>(new_handle.generation) << 32i64);
+                map->length = map->length + 1i64;
                 pass(new_handle);
             }
             if (k == @cast_unchecked<int64>(hash)) {
-                int64:packed = <-(@ptr_add<int64>(values, idx));
+                int64:packed = <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(values) + (@cast_unchecked<int64>(idx) * @sizeof(int64))));
                 uint32:h_idx = @cast_unchecked<uint32>(packed & 0xFFFFFFFFi64);
                 uint32:gen = @cast_unchecked<uint32>((packed >> 32i64) & 0xFFFFFFFFi64);
                 CompactHandle<GreenNode>:h;
@@ -99,7 +134,7 @@ pub func:hash_green_node = uint32(wild GreenNode->:node) {
             }
             idx = (idx + 1i64) & mask;
             if (idx == start_idx) {
-                pass(raw npk_arena_push(arena, node));
+                pass(raw npk_arena_push(arena, node)); // Failsafe
             }
         }
         CompactHandle<GreenNode>:h;

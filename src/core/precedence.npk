@@ -1,21 +1,49 @@
+use "unsafe.npk".*;
 
 /// Represents a flat, array-based lookup table for operator binding power.
 /// To guarantee O(1) performance and avoid hash-map overhead, token_kind IDs
 /// must be used directly as indices into these arrays.
 pub struct:PrecedenceTable = {
     int64:capacity;
-    int32->:binding_powers;
-    int32->:associativity; // 0 = Left, 1 = Right
+    wild int32->:binding_powers;
+    wild int8->:associativity; // 0 = Left, 1 = Right
 };
 
     /// Initializes a flat precedence table capable of holding up to max_token_id.
-    pub func:npk_precedence_table_create = PrecedenceTable->(int32:max_token_id) { pass(NULL); };
+    pub func:npk_precedence_table_create = PrecedenceTable->(int32:max_token_id) { 
+        int64:cap = @cast_unchecked<int64>(max_token_id) + 1i64;
+        wild PrecedenceTable->:table = @cast_unchecked<PrecedenceTable->>(alloc(24i64));
+        table->capacity = cap;
+        table->binding_powers = @cast_unchecked<int32->>(calloc(cap, @sizeof(int32)));
+        table->associativity = @cast_unchecked<int8->>(calloc(cap, @sizeof(int8)));
+        pass(table); 
+    };
     
     /// Sets the precedence power for a specific token ID.
-    pub func:npk_precedence_table_set = NIL(wild PrecedenceTable->:table, int32:token_id, int32:power, int8:is_right_assoc) { pass(NIL); };
+    pub func:npk_precedence_table_set = NIL(wild PrecedenceTable->:table, int32:token_id, int32:power, int8:is_right_assoc) { 
+        if (@cast_unchecked<int64>(token_id) >= 0i64 && @cast_unchecked<int64>(token_id) < table->capacity) {
+            wild int32->:bp = table->binding_powers;
+            <-(@cast_unchecked<int32->>(@cast_unchecked<int64>(bp) + (@cast_unchecked<int64>(token_id) * @sizeof(int32)))) = power;
+            wild int8->:assoc = table->associativity;
+            <-(@cast_unchecked<int8->>(@cast_unchecked<int64>(assoc) + (@cast_unchecked<int64>(token_id) * @sizeof(int8)))) = is_right_assoc;
+        }
+        pass(NIL); 
+    };
     
     /// Fast O(1) lookup: returns the binding power for a token ID.
-    pub func:npk_precedence_table_get_power = int32(wild PrecedenceTable->:table, int32:token_id) { pass(0i32); };
+    pub func:npk_precedence_table_get_power = int32(wild PrecedenceTable->:table, int32:token_id) { 
+        if (@cast_unchecked<int64>(token_id) >= 0i64 && @cast_unchecked<int64>(token_id) < table->capacity) {
+            wild int32->:bp = table->binding_powers;
+            pass(<-(@cast_unchecked<int32->>(@cast_unchecked<int64>(bp) + (@cast_unchecked<int64>(token_id) * @sizeof(int32)))));
+        }
+        pass(0i32); 
+    };
     
     /// Fast O(1) lookup: returns 1 if right-associative, 0 otherwise.
-    pub func:npk_precedence_table_get_assoc = int8(wild PrecedenceTable->:table, int32:token_id) { pass(0i8); };
+    pub func:npk_precedence_table_get_assoc = int8(wild PrecedenceTable->:table, int32:token_id) { 
+        if (@cast_unchecked<int64>(token_id) >= 0i64 && @cast_unchecked<int64>(token_id) < table->capacity) {
+            wild int8->:assoc = table->associativity;
+            pass(<-(@cast_unchecked<int8->>(@cast_unchecked<int64>(assoc) + (@cast_unchecked<int64>(token_id) * @sizeof(int8)))));
+        }
+        pass(0i8); 
+    };
