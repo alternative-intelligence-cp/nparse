@@ -1,4 +1,3 @@
-use "unsafe.npk".*;
 use "memory/arena.npk".*;
 use "lexer/dfa_lexer.npk".*;
 use "core/token.npk".*;

@@ -1,4 +1,3 @@
-use "unsafe.npk".*;
 
 pub struct:MyStruct = {
     wild uint32->:buf;

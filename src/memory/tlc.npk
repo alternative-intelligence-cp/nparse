@@ -1,9 +1,8 @@
-use "unsafe.npk".*;
 use "core/red_node.npk".RedNode;
 
 pub struct:TlcChunk = {
     wild int8->:buf;
-    wild ?->:next;
+    wild any->:next;
 };
 
 pub struct:ThreadLocalCache = {
@@ -16,11 +15,11 @@ pub struct:ThreadLocalCache = {
 
     pub func:npk_tlc_create = wild ThreadLocalCache->() {
         int64:cap = 4096i64; // 4KB chunks
-        wild TlcChunk->:first = @cast_unchecked<TlcChunk->>(alloc(40i64));
+        wild TlcChunk->:first = @cast_unchecked<TlcChunk->>(alloc(16i64));
         first->buf = @cast_unchecked<int8->>(alloc(cap));
         first->next = NULL;
 
-        wild ThreadLocalCache->:tlc = @cast_unchecked<ThreadLocalCache->>(alloc(32i64));
+        wild ThreadLocalCache->:tlc = @cast_unchecked<ThreadLocalCache->>(alloc(40i64));
         tlc->head = first;
         tlc->tail = first;
         tlc->bump_ptr = first->buf;
@@ -45,15 +44,15 @@ pub struct:ThreadLocalCache = {
     };
 
     /// Allocates an arbitrary chunk of memory in the TLC ring buffer.
-    pub func:npk_tlc_alloc = ?->(wild ThreadLocalCache->:tlc, int64:size) {
-        if (size <= 0i64) { fail(4i32); }
-        if (size > 1073741824i64) { fail(1i32); }
+    pub func:npk_tlc_alloc = any->(wild ThreadLocalCache->:tlc, int64:size) {
+        if (size <= 0i64) { !!! 4i32; }
+        if (size > 1073741824i64) { !!! 1i32; }
         int64:aligned_size = (size + 7i64) & (~7i64);
         if (aligned_size <= tlc->bytes_remaining) {
             wild int8->:res = tlc->bump_ptr;
             tlc->bump_ptr = @cast_unchecked<int8->>(@cast_unchecked<int64>(res) + (@cast_unchecked<int64>(aligned_size) * @sizeof(int8)));
             tlc->bytes_remaining = tlc->bytes_remaining - aligned_size;
-            pass(@cast_unchecked<?->>(res));
+            pass(@cast_unchecked<any->>(res));
         }
         wild TlcChunk->:t_tail = tlc->tail;
         wild TlcChunk->:next_chunk = @cast_unchecked<TlcChunk->>(t_tail->next);
@@ -64,12 +63,12 @@ pub struct:ThreadLocalCache = {
         } else {
             int64:cap = tlc->chunk_capacity;
             if (aligned_size > cap) { cap = aligned_size; }
-            wild TlcChunk->:new_chunk = @cast_unchecked<TlcChunk->>(alloc(40i64));
+            wild TlcChunk->:new_chunk = @cast_unchecked<TlcChunk->>(alloc(16i64));
             new_chunk->buf = @cast_unchecked<int8->>(alloc(cap));
             wild TlcChunk->:t_tail_new = tlc->tail;
             new_chunk->next = t_tail_new->next;
 
-            t_tail_new->next = @cast_unchecked<?->>(new_chunk);
+            t_tail_new->next = @cast_unchecked<any->>(new_chunk);
             tlc->tail = new_chunk;
             tlc->bump_ptr = new_chunk->buf;
             tlc->bytes_remaining = cap;
@@ -77,11 +76,11 @@ pub struct:ThreadLocalCache = {
         wild int8->:res2 = tlc->bump_ptr;
         tlc->bump_ptr = @cast_unchecked<int8->>(@cast_unchecked<int64>(res2) + (@cast_unchecked<int64>(aligned_size) * @sizeof(int8)));
         tlc->bytes_remaining = tlc->bytes_remaining - aligned_size;
-        pass(@cast_unchecked<?->>(res2));
+        pass(@cast_unchecked<any->>(res2));
     };
 
     /// Convenience function that allocates exactly 32 bytes (size of a RedNode) in the TLC.
-    pub func:npk_tlc_alloc_red_node = ?->(wild ThreadLocalCache->:tlc) {
+    pub func:npk_tlc_alloc_red_node = any->(wild ThreadLocalCache->:tlc) {
         pass(npk_tlc_alloc(tlc, 32i64));
     };
 

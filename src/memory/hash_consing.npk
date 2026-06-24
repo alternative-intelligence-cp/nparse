@@ -1,4 +1,3 @@
-use "unsafe.npk".*;
 use "core/green_node.npk".GreenNode;
 use "memory/handle.npk".CompactHandle;
 use "memory/arena.npk".*;

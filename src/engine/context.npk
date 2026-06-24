@@ -8,12 +8,12 @@ use "memory/tlc.npk".{TlcChunk, ThreadLocalCache, npk_tlc_create, npk_tlc_destro
 /// is executed even if a soft error triggers an early return.
 pub struct:ScopedSemanticPass = {
     int8:active;
-    ThreadLocalCache->:tlc;
+    wild ThreadLocalCache->:tlc;
 };
 
     /// Initializes a new semantic pass boundary.
     pub func:scoped_pass_begin = ScopedSemanticPass() {
-        pass(ScopedSemanticPass { active: 1i8, tlc: _!npk_tlc_create() });
+        pass(ScopedSemanticPass { active: 1i8, tlc: npk_tlc_create() });
     };
     
     /// Must be explicitly called using the `defer` keyword since Nitpick 

@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-out_file = "/home/randy/Workspace/META/NITPICK/audits/a40/compilation.md"
+out_file = "/home/randy/Workspace/META/NITPICK/audits/a41/compilation.md"
 src_dir = "src"
 
 with open(out_file, "w") as out:

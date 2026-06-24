@@ -1,4 +1,3 @@
-use "unsafe.npk".*;
 
 /// An index mapping absolute byte offsets to line/column coordinates.
 pub struct:SourceMap = {

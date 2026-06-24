@@ -1,4 +1,3 @@
-use "unsafe.npk".*;
 
 pub func:test = NIL() {
     wild int8->:base = @cast_unchecked<int8->>(alloc(100i64));

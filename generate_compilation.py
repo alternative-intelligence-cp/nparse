@@ -1,28 +1,27 @@
 import os
-import subprocess
 import glob
+import subprocess
 
-output_file = "/home/randy/Workspace/META/NPARSE/audit/a9/compilation.md"
+out_file = "/home/randy/Workspace/META/NPARSE/audits/a10/compilation.md"
+src_dir = "/home/randy/Workspace/REPOS/nparse/src"
 
-files = glob.glob("src/**/*.npk", recursive=True)
+with open(out_file, "w") as f:
+    for root, _, files in os.walk(src_dir):
+        for file in files:
+            if file.endswith(".npk"):
+                path = os.path.join(root, file)
+                rel_path = os.path.relpath(path, src_dir)
+                f.write(f"\n# File: src/{rel_path}\n```nitpick\n")
+                with open(path, "r") as src_f:
+                    f.write(src_f.read())
+                f.write("\n```\n")
 
-with open(output_file, "w") as f:
-    for file in sorted(files):
-        f.write(f"### {file}\n")
-        f.write("```nitpick\n")
-        with open(file, "r") as src_f:
-            f.write(src_f.read())
-        f.write("\n```\n\n")
-        
-    f.write("### Build Output\n")
-    f.write("```\n")
-    result = subprocess.run(
-        ["npkc", "-I", "src", "src/main.npk", "--verify"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True
-    )
-    f.write(result.stdout)
+    f.write("\n# Build Output\n```\n")
+    try:
+        result = subprocess.run(["npkc", "src/main.npk"], cwd="/home/randy/Workspace/REPOS/nparse", capture_output=True, text=True)
+        f.write(result.stdout)
+        f.write(result.stderr)
+    except Exception as e:
+        f.write(str(e))
     f.write("\n```\n")
-    
-print(f"Generated {output_file}")
+print("Compilation file generated successfully!")

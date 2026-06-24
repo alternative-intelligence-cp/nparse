@@ -1,4 +1,3 @@
-use "unsafe.npk".*;
 
     /// Maps a specific lexical token type directly to a fundamental parsing rule ID.
     pub func:npk_rule_token    = int32(int64:g, int32:token_kind) { 

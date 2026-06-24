@@ -1,4 +1,3 @@
-use "unsafe.npk".*;
 
 /// Represents a flat, array-based lookup table for operator binding power.
 /// To guarantee O(1) performance and avoid hash-map overhead, token_kind IDs

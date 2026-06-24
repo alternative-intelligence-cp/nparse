@@ -1,4 +1,3 @@
-use "unsafe.npk".*;
 use "core/green_node.npk".GreenNode;
 use "memory/handle.npk".CompactHandle;
 use "lexer/dfa_lexer.npk".StrView;
@@ -17,6 +16,9 @@ Rules<uint32>:r_valid_depth = { $ > 0u32 && $ <= 4096u32 };
 
         if (apush(parse_stack, 1i64) < 0i32) { fail(ERR_PARSE_DEPTH_EXCEEDED); }
         
+        wild any->:ctx = @cast_unchecked<any->>(grammar);
+        wild int8->:rules_base = @cast_unchecked<int8->>(@cast_unchecked<int64>(ctx) + 8i64); // ctx->rules is at offset 8
+
         while (true) {
             int64:action = apop(parse_stack);
             if (action is unknown) { break; }
@@ -28,12 +30,19 @@ Rules<uint32>:r_valid_depth = { $ > 0u32 && $ <= 4096u32 };
             }
             
             if (action > 0i64) {
-                // Expand rule (simulated)
-                // In a full implementation, we'd look up the rule in the grammar
-                // and push its child rules or token matches in reverse order
+                wild any->:node = @cast_unchecked<any->>(@cast_unchecked<int64>(rules_base) + (action * 80i64));
+                int64:rkind = <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(node) + 0i64));
                 
-                // For now, to satisfy the stack machine requirement, we just simulate
-                // a successful reduction if action is simple.
+                if (rkind == 2i64) { // Seq
+                    int64:cnt = <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(node) + 40i64));
+                    int64:children = <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(node) + 64i64));
+                    int64:i = cnt - 1i64;
+                    while (i >= 0i64) {
+                        int32:c_id = <-(@cast_unchecked<int32->>(children + (i * 4i64)));
+                        if (apush(parse_stack, @cast_unchecked<int64>(c_id)) < 0i32) { fail(ERR_PARSE_DEPTH_EXCEEDED); }
+                        i = i - 1i64;
+                    }
+                }
             }
         }
         

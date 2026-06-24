@@ -1,4 +1,3 @@
-use "unsafe.npk".*;
 use "core/green_node.npk".GreenNode;
 use "memory/handle.npk".CompactHandle;
 
@@ -37,11 +36,9 @@ pub struct:GreenArena = {
         if (arena->length >= arena->capacity) {
             int64:new_cap = is (arena->capacity == 0i64) : 8i64 : (arena->capacity * 2i64);
             wild int8->:new_data = ralloc(@cast_unchecked<?->>(arena->data), new_cap * 32i64);
-            if (new_data == NULL) { fail(-2i32); } // SYS_OUT_OF_MEMORY
             arena->data = @cast_unchecked<GreenNode->>(new_data);
 
             wild int8->:new_gen = ralloc(@cast_unchecked<?->>(arena->generations), new_cap * @sizeof(uint32));
-            if (new_gen == NULL) { fail(-2i32); } // SYS_OUT_OF_MEMORY
             arena->generations = @cast_unchecked<uint32->>(new_gen);
 
             till(new_cap - arena->capacity, 1i64) {

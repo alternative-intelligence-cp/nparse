@@ -1,5 +1,5 @@
-use "core/precedence.npk".PrecedenceTable;
-use "core/precedence.npk".npk_precedence_table_create;
+use "../core/precedence.npk".PrecedenceTable;
+use "../core/precedence.npk".npk_precedence_table_create;
 
 pub struct:RuleNode = {
     int64:kind;
