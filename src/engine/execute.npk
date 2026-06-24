@@ -1,3 +1,4 @@
+use "unsafe.npk".*;
 use "core/green_node.npk".GreenNode;
 use "memory/handle.npk".{CompactHandle, is_null};
 use "lexer/dfa_lexer.npk".StrView;
@@ -14,10 +15,12 @@ Rules<uint32>:r_valid_depth = { $ > 0u32 && $ <= 4096u32 };
     pub func:npk_parse = CompactHandle<GreenNode>(int64:grammar, StrView:source, limit<r_valid_depth> uint32:max_recursion_depth) {
         int64:parse_stack = alist(4096i64); // Zero-allocation LIFO scratchpad
 
-        drop alpush(parse_stack, 1i64); // Start with root rule (assume rule ID 1 is root)
+        if (alpush(parse_stack, 1i64) < 0i64) { fail(ERR_PARSE_DEPTH_EXCEEDED); }
         
         while (alsize(parse_stack) > 0i64) {
             int64:action = alpop(parse_stack);
+            if (action is unknown) { break; }
+            action = ok(action);
             
             // Security: Limit virtual stack depth
             if (alsize(parse_stack) > @cast_unchecked<int64>(max_recursion_depth)) {
@@ -42,31 +45,38 @@ Rules<uint32>:r_valid_depth = { $ > 0u32 && $ <= 4096u32 };
 
     /// Packrat Memoization Cache: Fast path lookup using open-addressed flat array.
     pub func:npk_memoize_get = CompactHandle<GreenNode>(int64:cache_ptr, int32:rule_id, int64:byte_offset) {
-        int64:key = (@cast_unchecked<int64>(byte_offset) << 32i64) | @cast_unchecked<int64>(rule_id + 1i32);
+        int128:key = (@cast_unchecked<int128>(rule_id + 1i32) << 64i128) | @cast_unchecked<int128>(byte_offset);
         
         wild int64->:cache = @cast_unchecked<int64->>(cache_ptr);
         int64:capacity = <-cache; // First element is capacity
-        int64:mask = capacity - 1i64;
-        wild int64->:keys = @cast_unchecked<int64->>(cache_ptr + 8i64); // keys array
-        wild int64->:values = @cast_unchecked<int64->>(cache_ptr + 8i64 + (capacity * 8i64)); // values array
+        if (capacity <= 0i64) {
+            CompactHandle<GreenNode>:h;
+            h.index = 0u32;
+            h.generation = 0u32;
+            pass(h);
+        }
+        
+        wild int128->:keys = @cast_unchecked<int128->>(cache_ptr + 8i64); // keys array
+        wild int64->:values = @cast_unchecked<int64->>(cache_ptr + 8i64 + (capacity * 16i64)); // values array
 
-        uint64:uhash = @cast_unchecked<uint64>(key) ^ (@cast_unchecked<uint64>(key) >> 33u64);
+        uint64:uhash = @cast_unchecked<uint64>(@cast_unchecked<int64>(key ^ (key >> 64i128)));
+        uhash = uhash ^ (uhash >> 33u64);
         uhash = uhash * 7109453100751455733u64;
         uhash = uhash ^ (uhash >> 33u64);
         
-        int64:idx = @cast_unchecked<int64>(uhash) & mask;
+        int64:idx = @cast_unchecked<int64>(uhash) % capacity;
         int64:start_idx = idx;
 
         while (true) {
-            int64:k = <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(keys) + (idx * 8i64)));
-            if (k == 0i64) {
+            int128:k = <-(@ptr_add<int128>(keys, idx));
+            if (k == 0i128) {
                 CompactHandle<GreenNode>:h;
                 h.index = 0u32;
                 h.generation = 0u32;
                 pass(h);
             }
             if (k == key) {
-                int64:packed = <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(values) + (idx * 8i64)));
+                int64:packed = <-(@ptr_add<int64>(values, idx));
                 uint32:h_idx = @cast_unchecked<uint32>(packed & 0xFFFFFFFFi64);
                 uint32:gen = @cast_unchecked<uint32>((packed >> 32i64) & 0xFFFFFFFFi64);
                 CompactHandle<GreenNode>:h;
@@ -74,7 +84,7 @@ Rules<uint32>:r_valid_depth = { $ > 0u32 && $ <= 4096u32 };
                 h.generation = gen;
                 pass(h);
             }
-            idx = (idx + 1i64) & mask;
+            idx = (idx + 1i64) % capacity;
             if (idx == start_idx) {
                 CompactHandle<GreenNode>:h2;
                 h2.index = 0u32;
@@ -89,33 +99,33 @@ Rules<uint32>:r_valid_depth = { $ > 0u32 && $ <= 4096u32 };
     };
 
     pub func:npk_memoize_set = NIL(int64:cache_ptr, int32:rule_id, int64:byte_offset, CompactHandle<GreenNode>:res) {
-        int64:key = (@cast_unchecked<int64>(byte_offset) << 32i64) | @cast_unchecked<int64>(rule_id + 1i32);
-        if (key == 0i64) { pass(NIL); } // Key 0 is reserved for empty slots
+        int128:key = (@cast_unchecked<int128>(rule_id + 1i32) << 64i128) | @cast_unchecked<int128>(byte_offset);
+        if (key == 0i128) { pass(NIL); } // Key 0 is reserved for empty slots
         
         int64:packed = @cast_unchecked<int64>(res.index) | (@cast_unchecked<int64>(res.generation) << 32i64);
         
         wild int64->:cache = @cast_unchecked<int64->>(cache_ptr);
         int64:capacity = <-cache;
-        int64:mask = capacity - 1i64;
-        wild int64->:keys = @cast_unchecked<int64->>(cache_ptr + 8i64);
-        wild int64->:values = @cast_unchecked<int64->>(cache_ptr + 8i64 + (capacity * 8i64));
+        wild int128->:keys = @cast_unchecked<int128->>(cache_ptr + 8i64);
+        wild int64->:values = @cast_unchecked<int64->>(cache_ptr + 8i64 + (capacity * 16i64));
 
-        uint64:uhash = @cast_unchecked<uint64>(key) ^ (@cast_unchecked<uint64>(key) >> 33u64);
+        uint64:uhash = @cast_unchecked<uint64>(@cast_unchecked<int64>(key ^ (key >> 64i128)));
+        uhash = uhash ^ (uhash >> 33u64);
         uhash = uhash * 7109453100751455733u64;
         uhash = uhash ^ (uhash >> 33u64);
         
-        int64:idx = @cast_unchecked<int64>(uhash) & mask;
+        int64:idx = @cast_unchecked<int64>(uhash) % capacity;
         int64:start_idx = idx;
 
         while (true) {
-            wild int64->:k_ptr = @cast_unchecked<int64->>(@cast_unchecked<int64>(keys) + (idx * 8i64));
-            int64:k = <-k_ptr;
-            if (k == 0i64 || k == key) {
+            wild int128->:k_ptr = @ptr_add<int128>(keys, idx);
+            int128:k = <-k_ptr;
+            if (k == 0i128 || k == key) {
                 <-k_ptr = key;
-                <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(values) + (idx * 8i64))) = packed;
+                <-(@ptr_add<int64>(values, idx)) = packed;
                 pass(NIL);
             }
-            idx = (idx + 1i64) & mask;
+            idx = (idx + 1i64) % capacity;
             if (idx == start_idx) {
                 pass(NIL); // Cache full, drop it
             }
@@ -124,7 +134,10 @@ Rules<uint32>:r_valid_depth = { $ > 0u32 && $ <= 4096u32 };
     };
 
     /// Zero-Width Loop Defense: Assert progress within `repeat` combinators.
-    pub func:npk_prove_progress = NIL(int64:cursor_before, int64:cursor_after) {
+    pub func:npk_prove_progress = NIL(int64:cursor_before, int64:cursor_after, int64:source_length) {
+        if (cursor_after >= source_length) {
+            pass(NIL);
+        }
         if (cursor_after <= cursor_before) {
             fail(ERR_ZERO_WIDTH_LOOP);
         }

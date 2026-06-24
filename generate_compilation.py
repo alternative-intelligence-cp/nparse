@@ -2,7 +2,7 @@ import os
 import subprocess
 import glob
 
-output_file = "/home/randy/Workspace/META/NPARSE/audit/a8/compilation.md"
+output_file = "/home/randy/Workspace/META/NPARSE/audit/a9/compilation.md"
 
 files = glob.glob("src/**/*.npk", recursive=True)
 

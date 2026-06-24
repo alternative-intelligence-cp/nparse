@@ -1,3 +1,4 @@
+use "unsafe.npk".*;
 use "core/green_node.npk".GreenNode;
 use "memory/handle.npk".CompactHandle;
 use "memory/arena.npk".*;
@@ -31,7 +32,7 @@ pub func:hash_green_node = uint32(wild GreenNode->:node) {
     uint32:hash = FNV_OFFSET_BASIS;
     wild uint64->:ptr = @cast_unchecked<uint64->>(node);
     till(4i64, 1i64) {
-        uint64:val = <-(@cast_unchecked<uint64->>(@cast_unchecked<int64>(ptr) + ($ * 8i64)));
+        uint64:val = <-(@ptr_add<uint64>(ptr, $));
         uint32:lower = @cast_unchecked<uint32>(val & 0xFFFFFFFFu64);
         uint32:upper = @cast_unchecked<uint32>((val >> 32u64) & 0xFFFFFFFFu64);
         hash = raw npk_fnv1a_mix(hash, lower);
@@ -65,17 +66,17 @@ pub func:hash_green_node = uint32(wild GreenNode->:node) {
         int64:start_idx = idx;
         
         while (true) {
-            wild int64->:k_ptr = @cast_unchecked<int64->>(@cast_unchecked<int64>(keys) + (idx * 8i64));
+            wild int64->:k_ptr = @ptr_add<int64>(keys, idx);
             int64:k = <-k_ptr;
             if (k == 0i64) {
                 CompactHandle<GreenNode>:new_handle = raw npk_arena_push(arena, node);
                 <-k_ptr = @cast_unchecked<int64>(hash);
-                <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(values) + (idx * 8i64))) = 
+                <-(@ptr_add<int64>(values, idx)) = 
                     @cast_unchecked<int64>(new_handle.index) | (@cast_unchecked<int64>(new_handle.generation) << 32i64);
                 pass(new_handle);
             }
             if (k == @cast_unchecked<int64>(hash)) {
-                int64:packed = <-(@cast_unchecked<int64->>(@cast_unchecked<int64>(values) + (idx * 8i64)));
+                int64:packed = <-(@ptr_add<int64>(values, idx));
                 uint32:h_idx = @cast_unchecked<uint32>(packed & 0xFFFFFFFFi64);
                 uint32:gen = @cast_unchecked<uint32>((packed >> 32i64) & 0xFFFFFFFFi64);
                 CompactHandle<GreenNode>:h;

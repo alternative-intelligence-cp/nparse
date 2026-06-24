@@ -1,26 +1,54 @@
-with open("src/memory/tlc.npk", "r") as f:
-    text = f.read()
-text = text.replace('int8->:res = tlc->bump_ptr;', 'wild int8->:res = tlc->bump_ptr;')
-text = text.replace('int8->:res_slow = tlc->bump_ptr;', 'wild int8->:res_slow = tlc->bump_ptr;')
-text = text.replace('int8->:buf;', 'wild int8->:buf;')
-text = text.replace('int8->:bump_ptr;', 'wild int8->:bump_ptr;')
-with open("src/memory/tlc.npk", "w") as f:
-    f.write(text)
+import os
+import re
 
-with open("src/api/builder.npk", "r") as f:
-    text = f.read()
-text = text.replace('int64(int64:g', 'int64(wild GrammarHandle->:g')
-text = text.replace('int32(int64:g', 'int32(wild GrammarHandle->:g')
-text = text.replace('NIL(int64:g', 'NIL(wild GrammarHandle->:g')
-text = text.replace('pub func:npk_grammar_create = int64()', 'pub func:npk_grammar_create = wild GrammarHandle->()')
-text = text.replace('int64:g = @cast_unchecked<int64>(alloc(65536i64)); // allocate 64KB for grammar\n        <-@cast_unchecked<int32->>(g) = 0i32; // initial rule count\n        pass(g);', 'wild GrammarCtx->:ctx = @cast_unchecked<GrammarCtx->>(alloc(24i64));\n        ctx->rule_count = 1i32;\n        ctx->rules = @cast_unchecked<RuleNode->>(calloc(4096i32, 24i64));\n        ctx->precedence = npk_precedence_table_create(256i32);\n        pass(@cast_unchecked<wild GrammarHandle->>(ctx));')
-text = text.replace('pub func:npk_grammar_destroy = NIL(int64:grammar_ptr)', 'pub func:npk_grammar_destroy = NIL(wild GrammarHandle->:grammar_ptr)')
-with open("src/api/builder.npk", "w") as f:
-    f.write(text)
+def fix_file(filepath):
+    with open(filepath, 'r') as f:
+        content = f.read()
 
-with open("src/api/combinators.npk", "r") as f:
-    text = f.read()
-text = text.replace('int32(int64:g', 'int32(wild GrammarHandle->:g')
-with open("src/api/combinators.npk", "w") as f:
-    f.write(text)
+    # Ensure use "unsafe.npk".*;
+    if '@ptr_add' in content and 'use "unsafe.npk".*;' not in content:
+        content = 'use "unsafe.npk".*;\n' + content
 
+    # Fix @ptr_add(sm->line_starts, ...) -> wild int64->:ls = sm->line_starts; @ptr_add(ls, ...)
+    # But wait, we can just replace @ptr_add with the old cast to see if it works, or fix the wild pointer issue.
+    # The A15-2.1 specifically asks: "Rewrite all pointer arithmetic using the builtin @ptr_add<T>(ptr, offset)."
+    # If the compiler throws NITPICK-PTRARITH-STACK on `tail_chunk->buf`, it's because it's an expression.
+    # We should extract them to local wild pointers before @ptr_add.
+    
+    # Or maybe the compiler bug is just complaining because of missing "wild".
+    # Let's fix them manually in Python.
+    
+    lines = content.split('\n')
+    for i in range(len(lines)):
+        if '@ptr_add' in lines[i]:
+            # Extract the first argument
+            m = re.search(r'@ptr_add<([^>]+)>\(([^,]+),\s*(.+?)\)', lines[i])
+            if m:
+                t = m.group(1)
+                ptr_exp = m.group(2).strip()
+                offset = m.group(3).strip()
+                if not re.match(r'^[a-zA-Z0-9_]+$', ptr_exp):
+                    # It's an expression like sm->line_starts or arena->generations
+                    var_name = "temp_ptr_" + str(i)
+                    lines[i] = lines[i].replace(f'@ptr_add<{t}>({ptr_exp},', f'@ptr_add<{t}>({var_name},')
+                    lines[i] = f'        wild {t}->:{var_name} = {ptr_exp};\n' + lines[i]
+
+    content = '\n'.join(lines)
+    with open(filepath, 'w') as f:
+        f.write(content)
+
+files = [
+    'src/core/source_map.npk',
+    'src/memory/arena.npk',
+    'src/memory/hash_consing.npk',
+    'src/lexer/dfa_lexer.npk',
+    'src/memory/tlc.npk',
+    'src/engine/execute.npk',
+    'src/engine/recovery.npk'
+]
+
+for file in files:
+    if os.path.exists(file):
+        fix_file(file)
+
+print("Fixed files.")

@@ -1,8 +1,9 @@
-
-
-use "core/green_node.npk".GreenNode;
-use "memory/handle.npk".CompactHandle;
-
+use "unsafe.npk".*;
+use "memory/arena.npk".*;
+use "lexer/dfa_lexer.npk".*;
+use "core/token.npk".*;
+use "core/green_node.npk".*;
+use "memory/handle.npk".*;
 
 /// Pre-defined standard node kind for error representation.
 fixed int32:AST_ERROR_NODE_KIND = 0i32;
@@ -10,21 +11,52 @@ fixed int32:AST_ERROR_NODE_KIND = 0i32;
     /// Generates an AST_ERROR node wrapping the malformed or unexpected token.
     /// This prevents the parser from aborting and preserves the lossless CST constraint.
     pub func:npk_recover_create_error_node = CompactHandle<GreenNode>(int64:arena_ptr, int64:bad_token_ptr) { 
-        CompactHandle<GreenNode>:h;
-        h.index = 0u32;
-        h.generation = 0u32;
-        pass(h);
+        wild GreenArena->:arena = @cast_unchecked<GreenArena->>(arena_ptr);
+        wild Token->:bad_token = @cast_unchecked<Token->>(bad_token_ptr);
+        
+        GreenNode:node;
+        node.kind = AST_ERROR_NODE_KIND;
+        node.width = @cast_unchecked<tbb32>(bad_token->length + bad_token->leading_trivia_len + bad_token->trailing_trivia_len);
+        node.child_count = 0i32;
+        node.flags = 1u8; // contains_error
+        
+        CompactHandle<GreenNode>:empty_h;
+        empty_h.index = 0u32;
+        empty_h.generation = 0u32;
+        node.first_child = empty_h;
+        node.next_sibling = empty_h;
+        
+        pass(raw npk_arena_push(arena, @cast_unchecked<GreenNode->>(@node)));
     };
     
     /// Scans forward in the token stream until it reaches a synchronization boundary.
     /// Boundaries are typically block ends ('}') or statement terminators (';').
     /// Returns the number of tokens skipped so the parser can resume cleanly.
     pub func:npk_recover_sync_forward = int32(int64:lexer_ptr, wild int32->:sync_tokens, int32:sync_count) { 
+        wild Lexer->:lexer = @cast_unchecked<Lexer->>(lexer_ptr);
         int32:skipped = 0i32;
-        // In a real implementation, we would extract tokens from the lexer
-        // and check against the sync_tokens array.
-        // For now, just pretend we found a boundary after skipping 1 token
-        // to prevent infinite loops.
-        skipped = 1i32;
+        while (true) {
+            Token:tok = raw npk_lexer_next_token(lexer);
+            if (tok.kind < 0i32) { // EOF
+                break;
+            }
+            int32:found = 0i32;
+            till(@cast_unchecked<int64>(sync_count), 1i64) {
+                int32:stok = <-( @ptr_add<int32>(sync_tokens, $) );
+                if (tok.kind == stok) {
+                    found = 1i32;
+                }
+            }
+            if (found == 1i32) {
+                if (skipped == 0i32) {
+                    lexer->cursor = tok.offset + @cast_unchecked<int64>(tok.length);
+                    skipped = 1i32;
+                } else {
+                    lexer->cursor = tok.offset;
+                }
+                break;
+            }
+            skipped = skipped + 1i32;
+        }
         pass(skipped); 
     };
